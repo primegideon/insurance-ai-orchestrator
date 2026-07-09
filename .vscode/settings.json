@@ -1,0 +1,15 @@
+{
+  "files.watcherExclude": {
+    "**/.venv/**": true,
+    "**/venv/**": true,
+    "backend/.venv/**": true,
+    "**/__pycache__/**": true,
+    "**/*.pyc": true
+  },
+  "files.exclude": {
+    "**/.venv": true,
+    "backend/.venv": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true
+  }
+}
