@@ -3,10 +3,9 @@ import logging
 import os
 from typing import Any
 
-from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
 from pydantic import SecretStr
-from langchain_ibm import WatsonxLLM
-from langchain_core.prompts import PromptTemplate
+from langchain_ibm import ChatWatsonx
+from langchain_core.prompts import ChatPromptTemplate
 
 from app.models import ClaimSubmission, PolicyholderProfile, RiskEvaluationReport
 
@@ -15,20 +14,21 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Prompt template
 # ---------------------------------------------------------------------------
-_RISK_EVAL_TEMPLATE = """\
-You are an expert life insurance underwriting AI. Your task is to evaluate \
-a submitted claim and the associated policyholder profile for risk and \
-potential fraud.
+_SYSTEM_MSG = (
+    "You are an expert life insurance underwriting AI. Your task is to evaluate "
+    "a submitted claim and the associated policyholder profile for risk and potential fraud."
+)
 
+_USER_TEMPLATE = """\
 ## Policyholder Profile
 - Policy ID          : {policy_id}
 - Age                : {age}
-- Annual Income      : ${annual_income:,.2f}
+- Annual Income      : ${annual_income}
 - Medical History    : {medical_history_flags}
 
 ## Claim Submission
 - Claim ID                  : {claim_id}
-- Claim Amount              : ${claim_amount:,.2f}
+- Claim Amount              : ${claim_amount}
 - Months Since Policy Start : {months_since_inception}
 - Diagnosis Codes           : {diagnosis_codes}
 
@@ -39,30 +39,19 @@ Analyze the above data holistically like a Senior Life Insurance Underwriter. Fl
 - The High-Risk Triangle: The policyholder is older than 65, the months_since_inception is under 36, and the claim amount is high.
 - Early Claims: Any claim made where months_since_inception < 12.
 
-Return your analysis **only** as a valid JSON object — no markdown fences, \
-no extra text — with exactly these keys:
+Return your analysis **only** as a valid JSON object — no markdown fences, no extra text — with exactly these keys:
 
 {{
-  "risk_score": <float 0.0–1.0>,
+  "risk_score": <float 0.0-1.0>,
   "flagged_anomalies": [<string>, ...],
   "recommendation": "<Approve|Escalate to Underwriter|Reject>",
   "ai_reasoning": "<concise explanation>"
-}}
-"""
+}}"""
 
-_RISK_EVAL_PROMPT = PromptTemplate(
-    input_variables=[
-        "policy_id",
-        "age",
-        "annual_income",
-        "medical_history_flags",
-        "claim_id",
-        "claim_amount",
-        "months_since_inception",
-        "diagnosis_codes",
-    ],
-    template=_RISK_EVAL_TEMPLATE,
-)
+_RISK_EVAL_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", _SYSTEM_MSG),
+    ("human", _USER_TEMPLATE),
+])
 
 # ---------------------------------------------------------------------------
 # Valid recommendation literals (guards against hallucinated values)
@@ -72,17 +61,17 @@ _VALID_RECOMMENDATIONS = {"Approve", "Escalate to Underwriter", "Reject"}
 
 class InsuranceRiskEvaluator:
     """Evaluates life-insurance claims against policyholder profiles using
-    IBM Granite via ibm-watsonx-ai and returns a structured RiskEvaluationReport.
+    Mistral via ibm-watsonx-ai and returns a structured RiskEvaluationReport.
 
     Required environment variables:
-        WATSONX_API_KEY   – IBM Cloud API key
-        WATSONX_URL       – watsonx.ai service URL
-                           (e.g. https://us-south.ml.cloud.ibm.com)
+        WATSONX_API_KEY    – IBM Cloud API key
+        WATSONX_URL        – watsonx.ai service URL
+                             (e.g. https://us-south.ml.cloud.ibm.com)
         WATSONX_PROJECT_ID – watsonx.ai project ID
     """
 
-    #: Granite model used for risk evaluation
-    MODEL_ID: str = "ibm/granite-13b-instruct-v2"
+    #: Model used for risk evaluation
+    MODEL_ID: str = "mistral-large-2512"
 
     def __init__(
         self,
@@ -90,23 +79,21 @@ class InsuranceRiskEvaluator:
         api_key: str | None = None,
         url: str | None = None,
         project_id: str | None = None,
-        max_new_tokens: int = 512,
+        max_tokens: int = 512,
         temperature: float = 0.0,
     ) -> None:
         resolved_api_key = api_key or os.environ["WATSONX_API_KEY"]
         resolved_url = url or os.environ["WATSONX_URL"]
         resolved_project_id = project_id or os.environ["WATSONX_PROJECT_ID"]
 
-        self._llm = WatsonxLLM(
+        self._llm = ChatWatsonx(
             model_id=self.MODEL_ID,
-            url=SecretStr(resolved_url),
+            url=resolved_url,
             api_key=SecretStr(resolved_api_key),
             project_id=resolved_project_id,
             params={
-                GenParams.MAX_NEW_TOKENS: max_new_tokens,
-                GenParams.TEMPERATURE: temperature,
-                # Deterministic output is critical for structured JSON parsing
-                GenParams.DECODING_METHOD: "greedy",
+                "max_tokens": max_tokens,
+                "temperature": temperature,
             },
         )
 
@@ -149,7 +136,8 @@ class InsuranceRiskEvaluator:
         )
 
         try:
-            raw_response: str = self._chain.invoke(prompt_values)
+            ai_message = self._chain.invoke(prompt_values)
+            raw_response: str = ai_message.content
         except Exception as exc:
             raise RuntimeError(
                 f"ibm-watsonx-ai API call failed for claim '{claim.claim_id}': {exc}"
@@ -163,7 +151,7 @@ class InsuranceRiskEvaluator:
 
     def _parse_response(self, raw: str, claim_id: str) -> RiskEvaluationReport:
         """Parse the raw LLM string into a :class:`RiskEvaluationReport`."""
-        cleaned = raw.strip()
+        cleaned = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
 
         try:
             payload: dict[str, Any] = json.loads(cleaned)
