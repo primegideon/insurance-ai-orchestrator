@@ -21,50 +21,95 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
+    /* ── 1. Hide Streamlit chrome ── */
+    #MainMenu  { visibility: hidden; }
+    footer     { visibility: hidden; }
+    header     { visibility: hidden; }
+
     /* ── Global ── */
     html, body, [class*="css"] {
         font-family: 'Inter', 'Segoe UI', sans-serif;
     }
 
+    /* ── Full-page subtle gradient backdrop ── */
+    [data-testid="stAppViewContainer"] {
+        background: radial-gradient(ellipse at 20% 0%, rgba(0,114,198,0.18) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 100%, rgba(0,174,239,0.12) 0%, transparent 55%),
+                    #0E1117;
+    }
+    [data-testid="stMain"] { background: transparent; }
+
     /* ── Hero header ── */
     .hero {
-        background: linear-gradient(135deg, #0f2645 0%, #1a4a8a 60%, #00AEEF 100%);
-        border-radius: 16px;
-        padding: 2rem 2.5rem;
+        background: linear-gradient(135deg, #0a1a35 0%, #0f2d5e 45%, #0072C6 80%, #00AEEF 100%);
+        border-radius: 20px;
+        padding: 2.2rem 2.8rem;
         margin-bottom: 2rem;
-        box-shadow: 0 8px 32px rgba(0,174,239,0.18);
+        box-shadow: 0 8px 40px rgba(0,114,198,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+        position: relative;
+        overflow: hidden;
+    }
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: -40%; right: -10%;
+        width: 420px; height: 420px;
+        background: radial-gradient(circle, rgba(0,174,239,0.18) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
     }
     .hero h1 {
         color: #ffffff;
         font-size: 2rem;
         font-weight: 800;
         margin: 0 0 0.3rem 0;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.02em;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.3);
     }
-    .hero p {
-        color: #a8d8f0;
-        font-size: 0.95rem;
-        margin: 0;
-    }
+    .hero p { color: #a8d8f0; font-size: 0.95rem; margin: 0; }
     .hero .badge {
         display: inline-block;
-        background: rgba(0,174,239,0.25);
-        border: 1px solid rgba(0,174,239,0.5);
-        color: #00AEEF;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: #e0f4ff;
         border-radius: 999px;
-        padding: 0.2rem 0.85rem;
-        font-size: 0.78rem;
+        padding: 0.22rem 0.9rem;
+        font-size: 0.76rem;
         font-weight: 600;
         margin-right: 0.4rem;
-        margin-top: 0.6rem;
+        margin-top: 0.65rem;
         letter-spacing: 0.04em;
+    }
+
+    /* ── 2. Glassmorphism input widgets ── */
+    [data-testid="stTextInput"] input,
+    [data-testid="stNumberInput"] input {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        color: #f0f4f8 !important;
+        transition: border-color 0.2s, box-shadow 0.2s !important;
+        backdrop-filter: blur(6px) !important;
+    }
+    [data-testid="stTextInput"] input:focus,
+    [data-testid="stNumberInput"] input:focus {
+        border-color: #00AEEF !important;
+        box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.2), 0 0 16px rgba(0, 174, 239, 0.12) !important;
+        outline: none !important;
+    }
+    /* number input spinner buttons */
+    [data-testid="stNumberInput"] button {
+        background: rgba(255,255,255,0.06) !important;
+        border-color: rgba(255,255,255,0.1) !important;
+        color: #9ca3af !important;
     }
 
     /* ── Section headers ── */
     .section-title {
-        font-size: 0.78rem;
+        font-size: 0.74rem;
         font-weight: 700;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
         color: #00AEEF;
         margin: 0 0 1rem 0;
@@ -74,89 +119,132 @@ st.markdown("""
 
     /* ── Evaluate button ── */
     div.stButton > button {
-        background: linear-gradient(90deg, #0072C6, #00AEEF) !important;
+        background: linear-gradient(90deg, #0072C6 0%, #00AEEF 100%) !important;
         color: #ffffff !important;
         border: none !important;
         border-radius: 10px !important;
-        padding: 0.7rem 1.5rem !important;
+        padding: 0.75rem 1.5rem !important;
         font-size: 1rem !important;
         font-weight: 700 !important;
-        letter-spacing: 0.03em !important;
-        box-shadow: 0 4px 18px rgba(0,174,239,0.35) !important;
+        letter-spacing: 0.04em !important;
+        box-shadow: 0 4px 20px rgba(0,174,239,0.4), inset 0 1px 0 rgba(255,255,255,0.15) !important;
         transition: all 0.2s ease !important;
-        width: 100%;
+        width: 100% !important;
     }
     div.stButton > button:hover {
-        background: linear-gradient(90deg, #005fa3, #0099d4) !important;
-        box-shadow: 0 6px 24px rgba(0,174,239,0.5) !important;
-        transform: translateY(-1px) !important;
+        background: linear-gradient(90deg, #005fa3 0%, #009fd4 100%) !important;
+        box-shadow: 0 6px 28px rgba(0,174,239,0.55) !important;
+        transform: translateY(-2px) !important;
+    }
+    div.stButton > button:active { transform: translateY(0) !important; }
+
+    /* ── 3. Glassmorphism metric cards ── */
+    [data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.09) !important;
+        border-radius: 14px !important;
+        padding: 1.1rem 1.2rem !important;
+        backdrop-filter: blur(12px) !important;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+        transition: box-shadow 0.2s !important;
+    }
+    [data-testid="stMetric"]:hover {
+        box-shadow: 0 6px 32px rgba(0,174,239,0.18), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 2.2rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.02em !important;
+    }
+    [data-testid="stMetricLabel"] {
+        font-size: 0.76rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.06em !important;
+        text-transform: uppercase !important;
+        color: #6b7280 !important;
     }
 
-    /* ── Result cards ── */
-    .result-card {
-        background: #1E2127;
-        border-radius: 12px;
-        padding: 1.4rem 1.6rem;
-        margin-bottom: 1rem;
-        border: 1px solid rgba(255,255,255,0.07);
+    /* ── 4. Custom verdict banners ── */
+    .verdict-approve {
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%);
+        border: 1px solid rgba(16,185,129,0.4);
+        border-radius: 14px;
+        padding: 1.4rem 1.8rem;
+        margin-bottom: 1.4rem;
+        box-shadow: 0 4px 24px rgba(16,185,129,0.2), inset 0 1px 0 rgba(255,255,255,0.07);
     }
-    .result-card-title {
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin-bottom: 0.6rem;
+    .verdict-escalate {
+        background: linear-gradient(135deg, #451a03 0%, #78350f 60%, #92400e 100%);
+        border: 1px solid rgba(245,158,11,0.4);
+        border-radius: 14px;
+        padding: 1.4rem 1.8rem;
+        margin-bottom: 1.4rem;
+        box-shadow: 0 4px 24px rgba(245,158,11,0.18), inset 0 1px 0 rgba(255,255,255,0.07);
     }
+    .verdict-reject {
+        background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 60%, #991b1b 100%);
+        border: 1px solid rgba(239,68,68,0.4);
+        border-radius: 14px;
+        padding: 1.4rem 1.8rem;
+        margin-bottom: 1.4rem;
+        box-shadow: 0 4px 24px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+    .verdict-icon  { font-size: 1.6rem; margin-bottom: 0.3rem; line-height: 1; }
+    .verdict-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
+                     text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 0.15rem; }
+    .verdict-text  { font-size: 1.25rem; font-weight: 800; color: #ffffff;
+                     letter-spacing: -0.01em; line-height: 1.2; }
+    .verdict-sub   { font-size: 0.85rem; color: rgba(255,255,255,0.65); margin-top: 0.3rem; }
 
     /* ── Anomaly pills ── */
     .pill {
         display: inline-block;
-        background: rgba(239,68,68,0.15);
-        color: #f87171;
-        border: 1px solid rgba(239,68,68,0.3);
+        background: rgba(239,68,68,0.12);
+        color: #fca5a5;
+        border: 1px solid rgba(239,68,68,0.25);
         border-radius: 999px;
-        padding: 0.25rem 0.85rem;
-        font-size: 0.8rem;
+        padding: 0.28rem 0.9rem;
+        font-size: 0.79rem;
         font-weight: 500;
-        margin: 0.2rem 0.2rem 0.2rem 0;
+        margin: 0.2rem 0.25rem 0.2rem 0;
+        backdrop-filter: blur(4px);
     }
     .pill-clean {
         display: inline-block;
-        background: rgba(16,185,129,0.12);
-        color: #34d399;
-        border: 1px solid rgba(16,185,129,0.25);
+        background: rgba(16,185,129,0.1);
+        color: #6ee7b7;
+        border: 1px solid rgba(16,185,129,0.22);
         border-radius: 999px;
-        padding: 0.25rem 0.85rem;
-        font-size: 0.8rem;
+        padding: 0.28rem 0.9rem;
+        font-size: 0.79rem;
         font-weight: 500;
     }
 
     /* ── AI reasoning box ── */
     .reasoning {
         background: rgba(0,174,239,0.05);
+        border: 1px solid rgba(0,174,239,0.15);
         border-left: 3px solid #00AEEF;
-        border-radius: 0 8px 8px 0;
-        padding: 1rem 1.2rem;
-        color: #d1d5db;
+        border-radius: 0 12px 12px 0;
+        padding: 1.1rem 1.4rem;
+        color: #cbd5e1;
         font-size: 0.92rem;
-        line-height: 1.7;
+        line-height: 1.75;
+        backdrop-filter: blur(6px);
     }
 
     /* ── Divider ── */
-    hr { border-color: rgba(255,255,255,0.07) !important; }
-
-    /* ── Metric overrides ── */
-    [data-testid="stMetricValue"] {
-        font-size: 2.4rem !important;
-        font-weight: 800 !important;
-    }
+    hr { border: none; border-top: 1px solid rgba(255,255,255,0.06) !important; margin: 0.5rem 0 1.5rem; }
 
     /* ── Input labels ── */
-    label { font-size: 0.85rem !important; color: #9ca3af !important; }
+    label { font-size: 0.82rem !important; color: #8b95a3 !important; font-weight: 500 !important; }
 
-    /* ── Hide Streamlit chrome ── */
-    #MainMenu, footer, header { visibility: hidden; }
+    /* ── Expander glass ── */
+    [data-testid="stExpander"] {
+        background: rgba(255,255,255,0.03) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 10px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -282,15 +370,36 @@ else:
     flagged_anomalies: list = result.get("flagged_anomalies", [])
     rec_lower               = recommendation.lower()
 
-    # ── Recommendation banner ────────────────────────────────────────────────
+    # ── 4. Custom verdict banner ─────────────────────────────────────────────
     st.markdown("### 📊 Evaluation Results")
 
     if "approve" in rec_lower:
-        st.success(f"✅  **{recommendation}** — Claim cleared for processing.")
+        st.markdown(f"""
+        <div class="verdict-approve">
+            <div class="verdict-icon">✅</div>
+            <div class="verdict-label">Verdict</div>
+            <div class="verdict-text">{recommendation}</div>
+            <div class="verdict-sub">Claim cleared for processing — no significant risk flags detected.</div>
+        </div>
+        """, unsafe_allow_html=True)
     elif "escalate" in rec_lower:
-        st.warning(f"⚠️  **{recommendation}** — Manual review required before proceeding.")
+        st.markdown(f"""
+        <div class="verdict-escalate">
+            <div class="verdict-icon">⚠️</div>
+            <div class="verdict-label">Verdict</div>
+            <div class="verdict-text">{recommendation}</div>
+            <div class="verdict-sub">Manual underwriter review required before this claim can proceed.</div>
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        st.error(f"🚫  **{recommendation}** — Claim does not meet approval criteria.")
+        st.markdown(f"""
+        <div class="verdict-reject">
+            <div class="verdict-icon">🚫</div>
+            <div class="verdict-label">Verdict</div>
+            <div class="verdict-text">{recommendation}</div>
+            <div class="verdict-sub">Claim does not meet approval criteria — refer to anomalies below.</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
