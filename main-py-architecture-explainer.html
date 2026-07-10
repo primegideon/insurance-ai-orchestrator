@@ -1,0 +1,158 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>main.py Architecture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; padding: 28px; }
+  h1 { font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .subtitle { font-size: 0.82rem; color: #64748b; margin-bottom: 28px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #1e2130;
+    border: 1px solid #2d3148;
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card.full { grid-column: 1 / -1; }
+  .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .badge {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: .05em;
+    padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
+  }
+  .badge-blue   { background: #1d3a6b; color: #60a5fa; }
+  .badge-green  { background: #14352a; color: #34d399; }
+  .badge-yellow { background: #3a2e0e; color: #fbbf24; }
+  .badge-purple { background: #2d1d4a; color: #c084fc; }
+  .badge-red    { background: #3a1a1a; color: #f87171; }
+
+  .card-title { font-size: 0.95rem; font-weight: 600; color: #f1f5f9; }
+  .card p { font-size: 0.82rem; color: #94a3b8; line-height: 1.6; }
+
+  code {
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    background: #111827; color: #93c5fd;
+    padding: 1px 6px; border-radius: 4px; font-size: 0.8rem;
+  }
+
+  .flow {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 8px; margin-top: 14px;
+  }
+  .flow-box {
+    background: #111827; border: 1px solid #374151;
+    border-radius: 6px; padding: 7px 12px;
+    font-size: 0.78rem; color: #e2e8f0; white-space: nowrap;
+  }
+  .arrow { color: #4b5563; font-size: 1rem; }
+
+  .http-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .method { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .get  { background: #14352a; color: #34d399; }
+  .post { background: #1d3a6b; color: #60a5fa; }
+  .path { font-family: monospace; font-size: 0.82rem; color: #c084fc; }
+  .desc { font-size: 0.78rem; color: #64748b; }
+
+  .err-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+  .err-code { font-family: monospace; font-size: 0.78rem; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+  .e502 { background: #3a2210; color: #fb923c; }
+  .e503 { background: #3a1a1a; color: #f87171; }
+  .err-text { font-size: 0.8rem; color: #94a3b8; line-height: 1.5; }
+
+  .origin-list { list-style: none; margin-top: 8px; }
+  .origin-list li { font-size: 0.8rem; color: #94a3b8; padding: 3px 0; }
+  .origin-list li::before { content: '✦ '; color: #60a5fa; }
+
+  .tip { background: #1a2535; border-left: 3px solid #3b82f6; padding: 10px 14px; border-radius: 0 6px 6px 0; margin-top: 14px; font-size: 0.8rem; color: #93c5fd; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<h1>backend/app/main.py — Design Breakdown</h1>
+<p class="subtitle">Every architectural decision explained</p>
+
+<div class="grid">
+
+  
+  <div class="card">
+    <div class="card-header">
+      <span class="badge badge-blue">Schema</span>
+      <span class="card-title">EvaluateClaimRequest</span>
+    </div>
+    <p>A single <code>BaseModel</code> that <strong>nests</strong> both input objects so the frontend sends one clean JSON payload. FastAPI auto-generates the combined schema in the <code>/docs</code> UI.</p>
+    <div class="flow" style="margin-top:12px">
+      <div class="flow-box">{ "claim": { … }, "profile": { … } }</div>
+      <span class="arrow">→</span>
+      <div class="flow-box">EvaluateClaimRequest</div>
+      <span class="arrow">→</span>
+      <div class="flow-box">evaluator.evaluate()</div>
+    </div>
+  </div>
+
+  
+  <div class="card">
+    <div class="card-header">
+      <span class="badge badge-yellow">Startup</span>
+      <span class="card-title">Lifespan Singleton</span>
+    </div>
+    <p><code>InsuranceRiskEvaluator</code> is built <strong>once</strong> inside the <code>lifespan</code> context manager — not on every request. This matters because the IBM SDK authenticates with IAM at construction time, so instantiating per-request would add a network round-trip and cost to every call.</p>
+  </div>
+
+  
+  <div class="card">
+    <div class="card-header">
+      <span class="badge badge-green">Routes</span>
+      <span class="card-title">Endpoints</span>
+    </div>
+    <div class="http-row">
+      <span class="method get">GET</span>
+      <span class="path">/</span>
+      <span class="desc">Health check — returns <code>{"status":"ok"}</code></span>
+    </div>
+    <div class="http-row">
+      <span class="method post">POST</span>
+      <span class="path">/api/v1/evaluate-claim</span>
+      <span class="desc">Accepts claim + profile, returns <code>RiskEvaluationReport</code></span>
+    </div>
+    <div class="tip">The <code>/api/v1/</code> prefix keeps the path versioned so a v2 can coexist without breaking existing frontend calls.</div>
+  </div>
+
+  
+  <div class="card">
+    <div class="card-header">
+      <span class="badge badge-red">Errors</span>
+      <span class="card-title">HTTP Error Mapping</span>
+    </div>
+    <div class="err-row">
+      <span class="err-code e502">502</span>
+      <span class="err-text"><strong>Bad Gateway</strong> — raised when <code>ValueError</code> is caught, meaning the LLM returned malformed or unparseable JSON. The fault is upstream (the AI model), not the client.</span>
+    </div>
+    <div class="err-row">
+      <span class="err-code e503">503</span>
+      <span class="err-text"><strong>Service Unavailable</strong> — raised when <code>RuntimeError</code> is caught, meaning the IBM watsonx API call itself failed (auth, quota, network timeout).</span>
+    </div>
+  </div>
+
+  
+  <div class="card full">
+    <div class="card-header">
+      <span class="badge badge-purple">CORS</span>
+      <span class="card-title">CORSMiddleware — Allowed Origins</span>
+    </div>
+    <p>Three localhost origins are whitelisted to cover every common frontend dev server. Add your production domain here before deploying.</p>
+    <ul class="origin-list">
+      <li><code>http://localhost:3000</code> — React / Next.js (Create React App, Next dev)</li>
+      <li><code>http://localhost:5173</code> — Vite (React, Vue, Svelte via Vite)</li>
+      <li><code>http://localhost:8080</code> — Vue CLI / generic fallback</li>
+    </ul>
+    <div class="tip">To run the server: <code>uvicorn app.main:app --reload</code> from the <code>backend/</code> directory. Then visit <code>http://localhost:8000/docs</code> for the interactive Swagger UI.</div>
+  </div>
+
+</div>
+</body>
+</html>
