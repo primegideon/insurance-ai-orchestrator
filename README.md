@@ -7,7 +7,7 @@
 
 ## 📌 Selected Challenge Theme
 
-**Insurance Claims & Risk Workflow Automation**
+**Insurance Claims & Risk Workflow Automation (Wildcard challenge)**
 
 This project addresses the end-to-end automation of life insurance claim intake, risk scoring, fraud detection, and underwriter decision support — replacing slow, error-prone manual review with an AI-driven evaluation pipeline that delivers a structured verdict in seconds.
 
