@@ -128,7 +128,7 @@ class InsuranceRiskEvaluator:
             f"claim amount {claim.claim_amount} "
             f"months since inception {claim.months_since_inception}"
         )
-        policy_clauses = retrieve_policy_clauses(rag_query, k=3)
+        policy_clauses: str = retrieve_policy_clauses(rag_query, k=3)
 
         prompt_values: dict[str, Any] = {
             "policy_clauses": policy_clauses,
@@ -156,13 +156,13 @@ class InsuranceRiskEvaluator:
                 f"ibm-watsonx-ai API call failed for claim '{claim.claim_id}': {exc}"
             ) from exc
 
-        return self._parse_response(raw_response, claim.claim_id)
+        return self._parse_response(raw_response, claim.claim_id, policy_clauses)
 
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _parse_response(self, raw: str, claim_id: str) -> RiskEvaluationReport:
+    def _parse_response(self, raw: str, claim_id: str, policy_clauses: str = "") -> RiskEvaluationReport:
         """Parse the raw LLM string into a :class:`RiskEvaluationReport`."""
         cleaned = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
 
@@ -215,4 +215,5 @@ class InsuranceRiskEvaluator:
             flagged_anomalies=[str(a) for a in anomalies],
             recommendation=recommendation,
             ai_reasoning=ai_reasoning,
+            policy_clauses=policy_clauses or None,
         )

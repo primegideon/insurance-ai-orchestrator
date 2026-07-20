@@ -26,3 +26,4 @@ class RiskEvaluationReport(BaseModel):
     flagged_anomalies: List[str]
     recommendation: str  # "Approve", "Escalate to Underwriter", or "Reject"
     ai_reasoning: str
+    policy_clauses: Optional[str] = None  # Raw RAG-retrieved policy text for traceability
