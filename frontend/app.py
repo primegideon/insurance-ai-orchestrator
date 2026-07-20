@@ -108,134 +108,115 @@ st.markdown("""
        HERO
     ════════════════════════════════════════════ */
     .hero {
-        background:
-            linear-gradient(135deg, #071428 0%, #0b2550 35%, #0a4a9e 68%, #0072C6 85%, #00AEEF 100%);
-        border-radius: 0 0 28px 28px;
-        padding: 2.4rem 3rem 1.8rem;
-        margin-bottom: 2.2rem;
-        box-shadow: 0 12px 60px rgba(0,114,198,0.40), inset 0 1px 0 rgba(255,255,255,0.07);
+        background: #0a0f1e;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        padding: 1.6rem 2.8rem;
+        margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
     }
+    /* Subtle left-edge accent bar */
     .hero::before {
         content: '';
         position: absolute;
-        top: -30%; right: -5%;
-        width: 480px; height: 480px;
-        background: radial-gradient(circle, rgba(0,174,239,0.20) 0%, transparent 65%);
-        border-radius: 50%;
-        pointer-events: none;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, #0072C6 0%, #00AEEF 100%);
     }
+    /* Faint deep-blue glow, bottom-right — almost invisible, just adds depth */
     .hero::after {
         content: '';
         position: absolute;
-        bottom: -20%; left: 20%;
-        width: 300px; height: 300px;
-        background: radial-gradient(circle, rgba(0,80,180,0.15) 0%, transparent 70%);
+        bottom: -60%; right: -8%;
+        width: 420px; height: 420px;
+        background: radial-gradient(circle, rgba(0,114,198,0.10) 0%, transparent 70%);
         border-radius: 50%;
         pointer-events: none;
     }
     .hero-inner {
         position: relative; z-index: 1;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
         gap: 1.5rem;
-        flex-wrap: wrap;
     }
-    .hero-left h1 {
-        color: #ffffff;
-        font-size: 2.1rem;
-        font-weight: 800;
-        margin: 0 0 0.25rem 0;
-        letter-spacing: -0.025em;
-        text-shadow: 0 2px 16px rgba(0,0,0,0.4);
-    }
-    .hero-left p {
-        color: #a8d8f0;
-        font-size: 0.93rem;
-        margin: 0 0 0.9rem 0;
-    }
-    .hero .badge {
-        display: inline-flex;
+    .hero-left {
+        display: flex;
         align-items: center;
-        gap: 0.3rem;
-        background: rgba(255,255,255,0.10);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.16);
-        color: #dff3ff;
-        border-radius: 999px;
-        padding: 0.24rem 0.85rem;
-        font-size: 0.74rem;
-        font-weight: 600;
-        margin-right: 0.35rem;
-        letter-spacing: 0.03em;
+        gap: 1.2rem;
+    }
+    .hero-logo {
+        width: 44px; height: 44px;
+        background: linear-gradient(135deg, #0057a8, #00AEEF);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 16px rgba(0,114,198,0.4);
+    }
+    .hero-title-group h1 {
+        color: #f1f5f9;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+    .hero-title-group p {
+        color: #475569;
+        font-size: 0.8rem;
+        margin: 0.18rem 0 0;
+        font-weight: 400;
+        letter-spacing: 0.01em;
     }
     .hero-right {
         display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 0.55rem;
-        min-width: 160px;
+        align-items: center;
+        gap: 1rem;
     }
-    .hero-user {
-        font-size: 0.76rem;
-        color: rgba(255,255,255,0.55);
-        text-align: right;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 200px;
+    .hero-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(16,185,129,0.08);
+        border: 1px solid rgba(16,185,129,0.2);
+        border-radius: 999px;
+        padding: 0.32rem 0.9rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6ee7b7;
+        letter-spacing: 0.03em;
+    }
+    .hero-status-dot {
+        width: 6px; height: 6px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 6px rgba(16,185,129,0.7);
+        animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.4; }
     }
 
-    /* ── Hero sign-out — native HTML button inside the hero markup ── */
+    /* ── Hero sign-out button ── */
     .hero-signout-btn {
-        background: rgba(255,255,255,0.10);
-        border: 1px solid rgba(255,255,255,0.25);
-        color: #dff3ff;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #64748b;
         font-family: inherit;
-        font-size: 0.8rem;
-        font-weight: 600;
+        font-size: 0.75rem;
+        font-weight: 500;
         letter-spacing: 0.04em;
-        padding: 0.42rem 1.2rem;
-        border-radius: 999px;
+        padding: 0.38rem 1rem;
+        border-radius: 8px;
         cursor: pointer;
-        backdrop-filter: blur(8px);
-        transition: background 0.18s;
+        transition: border-color 0.15s, color 0.15s;
         white-space: nowrap;
     }
     .hero-signout-btn:hover {
-        background: rgba(255,255,255,0.20);
-    }
-
-    /* ── Hero stats bar ── */
-    .hero-stats {
-        position: relative; z-index: 1;
-        display: flex;
-        gap: 0;
-        margin-top: 1.4rem;
-        border-top: 1px solid rgba(255,255,255,0.1);
-        padding-top: 1.2rem;
-    }
-    .hero-stat {
-        flex: 1;
-        padding: 0 1.4rem;
-        border-right: 1px solid rgba(255,255,255,0.1);
-    }
-    .hero-stat:first-child { padding-left: 0; }
-    .hero-stat:last-child  { border-right: none; }
-    .hero-stat-label {
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: rgba(255,255,255,0.45);
-        margin-bottom: 0.2rem;
-    }
-    .hero-stat-val {
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #ffffff;
+        border-color: rgba(239,68,68,0.4);
+        color: #fca5a5;
     }
 
     /* ════════════════════════════════════════════
@@ -421,44 +402,126 @@ st.markdown("""
     }
 
     /* ════════════════════════════════════════════
-       VERDICT BANNERS
+       VERDICT CARD  — redesigned
     ════════════════════════════════════════════ */
-    .verdict-wrap {
+    .verdict-card {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        background: #0d1220;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        margin-bottom: 1.6rem;
+        overflow: hidden;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.45);
+        position: relative;
+    }
+
+    /* Left coloured accent bar */
+    .verdict-accent {
+        width: 5px;
+        flex-shrink: 0;
+        border-radius: 16px 0 0 16px;
+    }
+    .verdict-approve  .verdict-accent { background: linear-gradient(180deg, #059669, #10b981); }
+    .verdict-escalate .verdict-accent { background: linear-gradient(180deg, #d97706, #f59e0b); }
+    .verdict-reject   .verdict-accent { background: linear-gradient(180deg, #dc2626, #ef4444); }
+
+    /* Main content area */
+    .verdict-content {
+        flex: 1;
+        padding: 1.5rem 1.8rem;
         display: flex;
         align-items: center;
-        gap: 1.4rem;
-        border-radius: 18px;
-        padding: 1.6rem 2rem;
-        margin-bottom: 1.6rem;
-        position: relative;
-        overflow: hidden;
+        gap: 1.6rem;
     }
-    .verdict-wrap::before {
-        content: '';
-        position: absolute;
-        top: 0; right: 0;
-        width: 250px; height: 100%;
-        background: radial-gradient(ellipse at right, rgba(255,255,255,0.06) 0%, transparent 70%);
+
+    /* Status chip */
+    .verdict-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border-radius: 6px;
+        padding: 0.22rem 0.75rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        margin-bottom: 0.55rem;
+        width: fit-content;
     }
-    .verdict-approve { background: linear-gradient(135deg, #052e1b 0%, #065f46 50%, #047857 100%); border: 1px solid rgba(16,185,129,0.35); box-shadow: 0 6px 32px rgba(16,185,129,0.18); }
-    .verdict-escalate { background: linear-gradient(135deg, #3a1500 0%, #78350f 50%, #92400e 100%); border: 1px solid rgba(245,158,11,0.35); box-shadow: 0 6px 32px rgba(245,158,11,0.16); }
-    .verdict-reject { background: linear-gradient(135deg, #3a0808 0%, #7f1d1d 50%, #991b1b 100%); border: 1px solid rgba(239,68,68,0.35); box-shadow: 0 6px 32px rgba(239,68,68,0.18); }
-    .verdict-icon-big { font-size: 2.4rem; line-height: 1; flex-shrink: 0; }
-    .verdict-body { flex: 1; }
-    .verdict-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 0.15rem; }
-    .verdict-text  { font-size: 1.45rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em; line-height: 1.15; }
-    .verdict-sub   { font-size: 0.84rem; color: rgba(255,255,255,0.6); margin-top: 0.3rem; }
-    .verdict-score {
-        text-align: center;
-        padding: 0.8rem 1.4rem;
-        background: rgba(0,0,0,0.25);
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.1);
-        backdrop-filter: blur(8px);
+    .verdict-approve  .verdict-chip { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+    .verdict-escalate .verdict-chip { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+    .verdict-reject   .verdict-chip { background: rgba(239,68,68,0.12);  border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+    .verdict-chip-dot {
+        width: 5px; height: 5px;
+        border-radius: 50%;
+    }
+    .verdict-approve  .verdict-chip-dot { background: #10b981; }
+    .verdict-escalate .verdict-chip-dot { background: #f59e0b; }
+    .verdict-reject   .verdict-chip-dot { background: #ef4444; }
+
+    .verdict-body     { flex: 1; }
+    .verdict-decision { font-size: 1.35rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.3rem; }
+    .verdict-sub      { font-size: 0.83rem; color: #475569; line-height: 1.55; }
+
+    /* Divider between body and score */
+    .verdict-divider {
+        width: 1px;
+        background: rgba(255,255,255,0.07);
+        margin: 1.2rem 0;
         flex-shrink: 0;
     }
-    .verdict-score-num { font-size: 2.1rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em; line-height: 1; }
-    .verdict-score-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); margin-top: 0.2rem; }
+
+    /* Score ring section */
+    .verdict-score-section {
+        padding: 1.5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+    .verdict-ring-wrap {
+        position: relative;
+        width: 72px; height: 72px;
+    }
+    .verdict-ring-wrap svg {
+        transform: rotate(-90deg);
+    }
+    .verdict-ring-bg {
+        fill: none;
+        stroke: rgba(255,255,255,0.07);
+        stroke-width: 5;
+    }
+    .verdict-ring-fill {
+        fill: none;
+        stroke-width: 5;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.6s ease;
+    }
+    .verdict-approve  .verdict-ring-fill { stroke: #10b981; }
+    .verdict-escalate .verdict-ring-fill { stroke: #f59e0b; }
+    .verdict-reject   .verdict-ring-fill { stroke: #ef4444; }
+    .verdict-ring-label {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #f1f5f9;
+        letter-spacing: -0.02em;
+        line-height: 1;
+    }
+    .verdict-score-caption {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #374151;
+        text-align: center;
+    }
 
     /* ════════════════════════════════════════════
        ANOMALY PILLS
@@ -586,23 +649,143 @@ st.markdown("""
     .placeholder-state .ph-icon { font-size: 2.8rem; margin-bottom: 0.8rem; opacity: 0.6; }
     .placeholder-state p { font-size: 0.95rem; }
     .placeholder-state strong { color: #00AEEF; }
+
+    /* ════════════════════════════════════════════
+       AUDIT GUARDRAIL BANNER
+    ════════════════════════════════════════════ */
+    .audit-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.2rem;
+        background: #1a0e00;
+        border: 1px solid rgba(251,191,36,0.35);
+        border-left: 4px solid #f59e0b;
+        border-radius: 14px;
+        padding: 1.35rem 1.6rem;
+        margin-bottom: 1.6rem;
+        box-shadow: 0 4px 28px rgba(245,158,11,0.12);
+    }
+    .audit-banner-icon {
+        font-size: 1.5rem;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-top: 0.05rem;
+    }
+    .audit-banner-body { flex: 1; }
+    .audit-banner-title {
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #fcd34d;
+        margin-bottom: 0.3rem;
+    }
+    .audit-banner-msg {
+        font-size: 0.88rem;
+        color: #92400e;
+        color: #d97706;
+        line-height: 1.65;
+        margin-bottom: 0.45rem;
+    }
+    .audit-banner-reason {
+        font-size: 0.8rem;
+        color: #78350f;
+        color: #92400e;
+        font-style: italic;
+        line-height: 1.55;
+        border-top: 1px solid rgba(245,158,11,0.15);
+        padding-top: 0.45rem;
+        margin-top: 0.1rem;
+    }
+
+    /* ── PDF download button — override the default stDownloadButton ── */
+    [data-testid="stDownloadButton"] > button {
+        background: rgba(255,255,255,0.04) !important;
+        border: 1px solid rgba(255,255,255,0.14) !important;
+        color: #94a3b8 !important;
+        border-radius: 10px !important;
+        font-size: 0.84rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.03em !important;
+        padding: 0.6rem 1.4rem !important;
+        box-shadow: none !important;
+        transition: border-color 0.15s, color 0.15s, background 0.15s !important;
+        width: 100% !important;
+    }
+    [data-testid="stDownloadButton"] > button:hover {
+        background: rgba(0,174,239,0.08) !important;
+        border-color: rgba(0,174,239,0.35) !important;
+        color: #e2e8f0 !important;
+        transform: none !important;
+        filter: none !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
-# Session-state helpers
+# Session-state helpers  (token persisted in st.session_state +
+#                          browser localStorage via a tiny JS bridge)
 # ---------------------------------------------------------------------------
+
+# Restore from localStorage on every cold page load before anything renders
+_RESTORE_JS = """
+<script>
+(function() {
+    const t = localStorage.getItem('iau_access_token');
+    const e = localStorage.getItem('iau_user_email');
+    if (t) {
+        // POST the values back into Streamlit via query-param round-trip
+        const url = new URL(window.location.href);
+        if (!url.searchParams.get('_restore_token')) {
+            url.searchParams.set('_restore_token', t);
+            if (e) url.searchParams.set('_restore_email', e);
+            window.location.replace(url.toString());
+        }
+    }
+})();
+</script>
+"""
+
+def _persist_to_local_storage(token: str, email: str) -> None:
+    """Inject JS that writes the session into localStorage."""
+    safe_token = token.replace("'", "\\'")
+    safe_email = email.replace("'", "\\'")
+    st.markdown(
+        f"<script>localStorage.setItem('iau_access_token','{safe_token}');"
+        f"localStorage.setItem('iau_user_email','{safe_email}');</script>",
+        unsafe_allow_html=True,
+    )
+
+def _clear_local_storage() -> None:
+    """Inject JS that removes the session from localStorage."""
+    st.markdown(
+        "<script>localStorage.removeItem('iau_access_token');"
+        "localStorage.removeItem('iau_user_email');</script>",
+        unsafe_allow_html=True,
+    )
+
 def _is_authenticated() -> bool:
+    # First call on a cold refresh: try to restore from query params written
+    # by the localStorage JS bridge above.
+    if not st.session_state.get("access_token"):
+        token = st.query_params.get("_restore_token")
+        email = st.query_params.get("_restore_email", "")
+        if token:
+            st.session_state["access_token"] = token
+            st.session_state["user_email"]   = email
+            # Clean the URL immediately so the token isn't visible in the bar
+            st.query_params.clear()
     return bool(st.session_state.get("access_token"))
 
 def _store_session(session) -> None:
     st.session_state["access_token"] = session.access_token
-    st.session_state["user_email"] = session.user.email
+    st.session_state["user_email"]   = session.user.email
 
 def _clear_session() -> None:
     for key in ("access_token", "user_email"):
         st.session_state.pop(key, None)
+    _clear_local_storage()
 
 
 # ---------------------------------------------------------------------------
@@ -647,6 +830,11 @@ def show_login() -> None:
             try:
                 resp = supabase.auth.sign_in_with_password({"email": email, "password": password})
                 _store_session(resp.session)
+                # Persist into localStorage so a browser refresh restores the session
+                _persist_to_local_storage(
+                    resp.session.access_token,
+                    resp.session.user.email or "",
+                )
                 st.rerun()
             except Exception as exc:
                 msg = str(exc)
@@ -659,7 +847,7 @@ def show_login() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Helper
+# Helpers
 # ---------------------------------------------------------------------------
 def parse_list(raw: str) -> list[str]:
     return [x.strip() for x in raw.split(",") if x.strip()]
@@ -669,6 +857,223 @@ def _code_only(opt: str) -> str:
     return opt.split("—")[0].strip()
 
 
+def _build_audit_pdf(
+    claim_id: str,
+    policy_id: str,
+    age: int,
+    annual_income: float,
+    claim_amount: float,
+    months_since_inception: int,
+    diagnosis_codes: list[str],
+    medical_history: list[str],
+    risk_score: float,
+    recommendation: str,
+    flagged_anomalies: list[str],
+    ai_reasoning: str,
+    policy_clauses_raw: str,
+    requires_manual_audit: bool,
+    audit_reason: str | None,
+) -> bytes:
+    """Build an in-memory PDF audit report and return the raw bytes.
+
+    Uses reportlab.platypus for structured, paginated output.
+    No files are written to disk — the document is built entirely in a
+    BytesIO buffer and returned as bytes for Streamlit's download_button.
+    """
+    import io
+    from datetime import datetime, timezone
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+        HRFlowable, KeepTogether,
+    )
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=A4,
+        leftMargin=2.2 * cm,
+        rightMargin=2.2 * cm,
+        topMargin=2.2 * cm,
+        bottomMargin=2.2 * cm,
+        title=f"Underwriting Audit Report — {claim_id}",
+        author="Insurance AI Risk Underwriter",
+    )
+
+    # ── Colour palette ───────────────────────────────────────────────────────
+    C_NAVY       = colors.HexColor("#0a0f1e")
+    C_BLUE       = colors.HexColor("#0072C6")
+    C_CYAN       = colors.HexColor("#00AEEF")
+    C_WHITE      = colors.white
+    C_LIGHT_GREY = colors.HexColor("#f1f5f9")
+    C_MID_GREY   = colors.HexColor("#94a3b8")
+    C_DARK_GREY  = colors.HexColor("#334155")
+    C_GREEN      = colors.HexColor("#059669")
+    C_AMBER      = colors.HexColor("#d97706")
+    C_RED        = colors.HexColor("#dc2626")
+    C_RULE_LINE  = colors.HexColor("#1e293b")
+
+    rec_lower = recommendation.lower()
+    verdict_colour = (
+        C_GREEN if "approve"  in rec_lower else
+        C_AMBER if "escalate" in rec_lower else
+        C_RED
+    )
+
+    # ── Paragraph styles ─────────────────────────────────────────────────────
+    base    = getSampleStyleSheet()
+    normal  = base["Normal"]
+
+    def _style(name, **kwargs) -> ParagraphStyle:
+        return ParagraphStyle(name, parent=normal, **kwargs)
+
+    s_doc_title  = _style("DocTitle",   fontSize=18, fontName="Helvetica-Bold",   textColor=C_NAVY,       spaceAfter=2)
+    s_doc_sub    = _style("DocSub",     fontSize=9,  fontName="Helvetica",        textColor=C_MID_GREY,   spaceAfter=14)
+    s_section    = _style("Section",    fontSize=8,  fontName="Helvetica-Bold",   textColor=C_BLUE,       spaceBefore=14, spaceAfter=6, leading=10)
+    s_field_key  = _style("FieldKey",   fontSize=8,  fontName="Helvetica-Bold",   textColor=C_DARK_GREY)
+    s_field_val  = _style("FieldVal",   fontSize=9,  fontName="Helvetica",        textColor=C_NAVY)
+    s_body       = _style("Body",       fontSize=9,  fontName="Helvetica",        textColor=C_DARK_GREY,  leading=14, spaceAfter=4)
+    s_clause_hdr = _style("ClauseHdr",  fontSize=7,  fontName="Helvetica-Bold",   textColor=C_CYAN,       spaceAfter=2)
+    s_clause     = _style("Clause",     fontSize=8,  fontName="Helvetica",        textColor=C_DARK_GREY,  leading=13)
+    s_verdict    = _style("Verdict",    fontSize=13, fontName="Helvetica-Bold",   textColor=verdict_colour, spaceBefore=4, spaceAfter=2)
+    s_anomaly    = _style("Anomaly",    fontSize=8,  fontName="Helvetica",        textColor=C_RED,        leftIndent=10, spaceAfter=2)
+    s_footer     = _style("Footer",     fontSize=7,  fontName="Helvetica",        textColor=C_MID_GREY)
+    s_audit_warn = _style("AuditWarn",  fontSize=8,  fontName="Helvetica-Bold",   textColor=C_AMBER,      spaceBefore=4, spaceAfter=2)
+    s_audit_body = _style("AuditBody",  fontSize=8,  fontName="Helvetica-Oblique",textColor=C_AMBER,      leading=12, spaceAfter=4)
+
+    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    income_ratio = claim_amount / annual_income if annual_income > 0 else 0
+
+    # ── Build flowable story ──────────────────────────────────────────────────
+    story = []
+
+    # Header block
+    story.append(Paragraph("Underwriting Audit Report", s_doc_title))
+    story.append(Paragraph(f"Claim {claim_id} &nbsp;·&nbsp; Policy {policy_id} &nbsp;·&nbsp; Generated {generated_at}", s_doc_sub))
+    story.append(HRFlowable(width="100%", thickness=1, color=C_RULE_LINE, spaceAfter=12))
+
+    # ── Manual audit warning (shown only when guardrail fires) ──────────────
+    if requires_manual_audit:
+        audit_table_data = [[
+            Paragraph("⚠  LOW CONFIDENCE — MANUAL AUDIT REQUIRED", s_audit_warn),
+        ], [
+            Paragraph(
+                audit_reason or "The RAG policy context did not meet confidence thresholds. "
+                "This AI-generated decision must not be actioned without human review.",
+                s_audit_body,
+            ),
+        ]]
+        audit_table = Table(audit_table_data, colWidths=["100%"])
+        audit_table.setStyle(TableStyle([
+            ("BACKGROUND",   (0, 0), (-1, -1), colors.HexColor("#1a0e00")),
+            ("BOX",          (0, 0), (-1, -1), 1, colors.HexColor("#d97706")),
+            ("LEFTPADDING",  (0, 0), (-1, -1), 10),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ("TOPPADDING",   (0, 0), (-1, -1), 8),
+            ("BOTTOMPADDING",(0, 0), (-1, -1), 8),
+            ("ROUNDEDCORNERS", (0, 0), (-1, -1), 6),
+        ]))
+        story.append(KeepTogether([audit_table, Spacer(1, 0.3 * cm)]))
+
+    # ── Section 1: Claim Details ─────────────────────────────────────────────
+    story.append(Paragraph("SECTION 1 — CLAIM DETAILS", s_section))
+    claim_table_data = [
+        [Paragraph("Claim ID",                    s_field_key), Paragraph(claim_id,                         s_field_val),
+         Paragraph("Policy ID",                   s_field_key), Paragraph(policy_id,                        s_field_val)],
+        [Paragraph("Claim Amount",                s_field_key), Paragraph(f"${claim_amount:,.2f}",           s_field_val),
+         Paragraph("Annual Income",               s_field_key), Paragraph(f"${annual_income:,.2f}",          s_field_val)],
+        [Paragraph("Claim / Income Ratio",        s_field_key), Paragraph(f"{income_ratio:.1f}×",            s_field_val),
+         Paragraph("Policy Tenure",               s_field_key), Paragraph(f"{months_since_inception} months",s_field_val)],
+        [Paragraph("Claimant Age",                s_field_key), Paragraph(f"{age} yrs",                     s_field_val),
+         Paragraph("Diagnosis Codes",             s_field_key), Paragraph(", ".join(diagnosis_codes) or "None", s_field_val)],
+        [Paragraph("Medical History",             s_field_key), Paragraph(", ".join(medical_history) or "None", s_field_val),
+         Paragraph("",                            s_field_key), Paragraph("",                                s_field_val)],
+    ]
+    col_w = doc.width / 4
+    claim_table = Table(claim_table_data, colWidths=[col_w * 0.9, col_w * 1.1, col_w * 0.9, col_w * 1.1])
+    claim_table.setStyle(TableStyle([
+        ("BACKGROUND",   (0, 0), (-1, -1), C_LIGHT_GREY),
+        ("GRID",         (0, 0), (-1, -1), 0.4, colors.HexColor("#e2e8f0")),
+        ("LEFTPADDING",  (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING",   (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 5),
+        ("ROWBACKGROUNDS",(0, 0),(-1,-1), [C_LIGHT_GREY, colors.HexColor("#e8f4fd")]),
+    ]))
+    story.append(claim_table)
+
+    # ── Section 2: AI Verdict ────────────────────────────────────────────────
+    story.append(Spacer(1, 0.3 * cm))
+    story.append(Paragraph("SECTION 2 — AI VERDICT", s_section))
+
+    score_pct = int(risk_score * 100)
+    verdict_data = [
+        [Paragraph("Recommendation", s_field_key), Paragraph(recommendation,      s_verdict)],
+        [Paragraph("Risk Score",      s_field_key), Paragraph(f"{risk_score:.2f} ({score_pct}%)", s_field_val)],
+    ]
+    verdict_table = Table(verdict_data, colWidths=[doc.width * 0.3, doc.width * 0.7])
+    verdict_table.setStyle(TableStyle([
+        ("BACKGROUND",   (0, 0), (-1, -1), C_LIGHT_GREY),
+        ("GRID",         (0, 0), (-1, -1), 0.4, colors.HexColor("#e2e8f0")),
+        ("LEFTPADDING",  (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING",   (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 5),
+        ("VALIGN",       (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    story.append(verdict_table)
+
+    # Flagged anomalies
+    if flagged_anomalies:
+        story.append(Spacer(1, 0.2 * cm))
+        story.append(Paragraph("Flagged Anomalies:", s_field_key))
+        for anomaly in flagged_anomalies:
+            story.append(Paragraph(f"• {anomaly}", s_anomaly))
+
+    # ── Section 3: Retrieved Policy Clauses ──────────────────────────────────
+    story.append(Spacer(1, 0.3 * cm))
+    story.append(Paragraph("SECTION 3 — RETRIEVED POLICY CLAUSES (RAG)", s_section))
+
+    raw_clauses = [c.strip() for c in policy_clauses_raw.split("\n\n") if c.strip()]
+    if raw_clauses:
+        for i, clause in enumerate(raw_clauses, 1):
+            clause_block = KeepTogether([
+                Paragraph(f"Retrieved Clause {i}", s_clause_hdr),
+                Paragraph(clause.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"), s_clause),
+                Spacer(1, 0.2 * cm),
+            ])
+            story.append(clause_block)
+    else:
+        story.append(Paragraph(
+            "No policy clauses were retrieved from the vector store for this evaluation.",
+            s_body,
+        ))
+
+    # ── Section 4: AI Reasoning ───────────────────────────────────────────────
+    story.append(HRFlowable(width="100%", thickness=0.5, color=C_RULE_LINE, spaceBefore=8, spaceAfter=8))
+    story.append(Paragraph("SECTION 4 — AI DECISION REASONING", s_section))
+    story.append(Paragraph(
+        ai_reasoning.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"),
+        s_body,
+    ))
+
+    # ── Footer ────────────────────────────────────────────────────────────────
+    story.append(Spacer(1, 0.5 * cm))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=C_RULE_LINE))
+    story.append(Spacer(1, 0.15 * cm))
+    story.append(Paragraph(
+        f"Generated by Insurance AI Risk Underwriter &nbsp;·&nbsp; IBM watsonx.ai (Mistral Large) "
+        f"&nbsp;·&nbsp; {generated_at} &nbsp;·&nbsp; This document is for internal underwriting use only.",
+        s_footer,
+    ))
+
+    doc.build(story)
+    return buf.getvalue()
+
+
 # ---------------------------------------------------------------------------
 # Main dashboard
 # ---------------------------------------------------------------------------
@@ -676,44 +1081,26 @@ def show_dashboard() -> None:
 
     user_email = st.session_state.get("user_email", "")
 
-    # ── Hero — fully self-contained, sign-out button lives inside the banner ──
-    st.markdown(f"""
+    # ── Hero ────────────────────────────────────────────────────────────────
+    st.markdown("""
     <div class="hero">
         <div class="hero-inner">
             <div class="hero-left">
-                <h1>🛡️ Insurance AI Risk Underwriter</h1>
-                <p>Enterprise-grade actuarial claim evaluation powered by IBM watsonx.ai</p>
-                <div>
-                    <span class="badge">⚡ IBM watsonx</span>
-                    <span class="badge">🤖 Mistral Large</span>
-                    <span class="badge">🗄️ Supabase pgvector</span>
-                    <span class="badge">🔒 ES256 JWT</span>
+                <div class="hero-logo">🛡️</div>
+                <div class="hero-title-group">
+                    <h1>Insurance AI Risk Underwriter</h1>
+                    <p>Actuarial claim evaluation &amp; fraud detection · IBM watsonx.ai</p>
                 </div>
             </div>
             <div class="hero-right">
-                <div class="hero-user">{user_email}</div>
+                <div class="hero-status-pill">
+                    <div class="hero-status-dot"></div>
+                    System Operational
+                </div>
                 <button class="hero-signout-btn"
                         onclick="window.location.href='?signout=1'">
                     Sign Out
                 </button>
-            </div>
-        </div>
-        <div class="hero-stats">
-            <div class="hero-stat">
-                <div class="hero-stat-label">AI Engine</div>
-                <div class="hero-stat-val">Mistral Large 25.12</div>
-            </div>
-            <div class="hero-stat">
-                <div class="hero-stat-label">Embeddings</div>
-                <div class="hero-stat-val">Slate 30M · 384-dim</div>
-            </div>
-            <div class="hero-stat">
-                <div class="hero-stat-label">Vector Store</div>
-                <div class="hero-stat-val">Supabase pgvector</div>
-            </div>
-            <div class="hero-stat">
-                <div class="hero-stat-label">Auth</div>
-                <div class="hero-stat-val">ES256 · Zero-latency</div>
             </div>
         </div>
     </div>
@@ -832,7 +1219,7 @@ def show_dashboard() -> None:
     if not evaluate_btn:
         st.markdown(
             '<div class="placeholder-state">'
-            '<div class="ph-icon">📊</div>'
+            '<div class="ph-icon"></div>'
             '<p>Fill in the claim and profile above, then click '
             '<strong>Evaluate Risk Now</strong> to run the AI analysis.</p>'
             '</div>',
@@ -896,46 +1283,85 @@ def show_dashboard() -> None:
             st.stop()
 
     # ── Unpack ───────────────────────────────────────────────────────────────
-    risk_score:       float = result["risk_score"]
-    recommendation:   str   = result["recommendation"]
-    ai_reasoning:     str   = result["ai_reasoning"]
-    flagged_anomalies: list = result.get("flagged_anomalies", [])
-    policy_clauses_raw: str = result.get("policy_clauses") or ""
+    risk_score:            float = result["risk_score"]
+    recommendation:        str   = result["recommendation"]
+    ai_reasoning:          str   = result["ai_reasoning"]
+    flagged_anomalies:     list  = result.get("flagged_anomalies", [])
+    policy_clauses_raw:    str   = result.get("policy_clauses") or ""
+    requires_manual_audit: bool  = result.get("requires_manual_audit", False)
+    audit_reason:          str   = result.get("audit_reason") or ""
     rec_lower = recommendation.lower()
 
     # ── Results heading ───────────────────────────────────────────────────────
     st.markdown(
-        '<div style="font-size:0.72rem;font-weight:800;letter-spacing:0.13em;'
-        'text-transform:uppercase;color:#4b5563;margin-bottom:1rem">📊 Evaluation Results</div>',
+        '<div style="font-size:0.68rem;font-weight:700;letter-spacing:0.14em;'
+        'text-transform:uppercase;color:#374151;margin-bottom:1rem">'
+        'Evaluation Results</div>',
         unsafe_allow_html=True,
     )
 
-    # ── Verdict banner ────────────────────────────────────────────────────────
-    score_pct = int(risk_score * 100)
+    # ── Guardrail: manual audit banner ───────────────────────────────────────
+    if requires_manual_audit:
+        st.markdown(
+            f'<div class="audit-banner">'
+            f'<div class="audit-banner-icon">⚠️</div>'
+            f'<div class="audit-banner-body">'
+            f'<div class="audit-banner-title">Low Confidence — Manual Human Audit Required</div>'
+            f'<div class="audit-banner-msg">'
+            f'The AI evaluation below was generated without sufficient grounding in specific '
+            f'internal policy rules. This automated decision <strong>must not be actioned</strong> '
+            f'without independent review by a qualified underwriter.'
+            f'</div>'
+            f'<div class="audit-banner-reason">Reason: {audit_reason}</div>'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    # ── Verdict card ─────────────────────────────────────────────────────────
+    score_pct    = int(risk_score * 100)
+    circumference = 2 * 3.14159 * 30          # r=30 → C ≈ 188.5
+    dash_offset   = circumference * (1 - risk_score)
+
     if "approve" in rec_lower:
-        verdict_cls  = "verdict-approve"
-        verdict_icon = "✅"
-        verdict_sub  = "Claim cleared for processing — no significant risk flags detected."
+        verdict_cls   = "verdict-approve"
+        chip_label    = "Approved"
+        verdict_sub   = "Claim cleared for processing. No significant actuarial risk flags were detected."
     elif "escalate" in rec_lower:
-        verdict_cls  = "verdict-escalate"
-        verdict_icon = "⚠️"
-        verdict_sub  = "Manual underwriter review required before this claim can proceed."
+        verdict_cls   = "verdict-escalate"
+        chip_label    = "Escalation Required"
+        verdict_sub   = "This claim requires review by a Senior Underwriter before any disbursement is authorised."
     else:
-        verdict_cls  = "verdict-reject"
-        verdict_icon = "🚫"
-        verdict_sub  = "Claim does not meet approval criteria — refer to flagged anomalies below."
+        verdict_cls   = "verdict-reject"
+        chip_label    = "Rejected"
+        verdict_sub   = "Claim does not meet approval criteria. Refer to flagged anomalies for details."
 
     st.markdown(f"""
-    <div class="verdict-wrap {verdict_cls}">
-        <div class="verdict-icon-big">{verdict_icon}</div>
-        <div class="verdict-body">
-            <div class="verdict-label">AI Verdict</div>
-            <div class="verdict-text">{recommendation}</div>
-            <div class="verdict-sub">{verdict_sub}</div>
+    <div class="verdict-card {verdict_cls}">
+        <div class="verdict-accent"></div>
+        <div class="verdict-content">
+            <div class="verdict-body">
+                <div class="verdict-chip">
+                    <div class="verdict-chip-dot"></div>
+                    {chip_label}
+                </div>
+                <div class="verdict-decision">{recommendation}</div>
+                <div class="verdict-sub">{verdict_sub}</div>
+            </div>
         </div>
-        <div class="verdict-score">
-            <div class="verdict-score-num">{score_pct}%</div>
-            <div class="verdict-score-label">Risk Score</div>
+        <div class="verdict-divider"></div>
+        <div class="verdict-score-section">
+            <div class="verdict-ring-wrap">
+                <svg width="72" height="72" viewBox="0 0 72 72">
+                    <circle class="verdict-ring-bg" cx="36" cy="36" r="30"/>
+                    <circle class="verdict-ring-fill"
+                            cx="36" cy="36" r="30"
+                            stroke-dasharray="{circumference:.1f}"
+                            stroke-dashoffset="{dash_offset:.1f}"/>
+                </svg>
+                <div class="verdict-ring-label">{score_pct}%</div>
+            </div>
+            <div class="verdict-score-caption">Risk Score</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1062,6 +1488,42 @@ def show_dashboard() -> None:
         unsafe_allow_html=True,
     )
 
+    # ── PDF Audit Report Export ───────────────────────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        '<div style="font-size:0.68rem;font-weight:700;letter-spacing:0.14em;'
+        'text-transform:uppercase;color:#374151;margin-bottom:0.6rem">'
+        'Export</div>',
+        unsafe_allow_html=True,
+    )
+    try:
+        pdf_bytes = _build_audit_pdf(
+            claim_id              = claim_id,
+            policy_id             = claim_policy_id,
+            age                   = int(age),
+            annual_income         = float(annual_income),
+            claim_amount          = float(claim_amount),
+            months_since_inception= int(months_since_inception),
+            diagnosis_codes       = parse_list(diagnosis_codes_raw),
+            medical_history       = parse_list(medical_history_raw),
+            risk_score            = risk_score,
+            recommendation        = recommendation,
+            flagged_anomalies     = flagged_anomalies,
+            ai_reasoning          = ai_reasoning,
+            policy_clauses_raw    = policy_clauses_raw,
+            requires_manual_audit = requires_manual_audit,
+            audit_reason          = audit_reason,
+        )
+        st.download_button(
+            label="📄  Download Underwriting Audit Summary (PDF)",
+            data=pdf_bytes,
+            file_name=f"audit_{claim_id}.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        )
+    except Exception as pdf_exc:
+        st.warning(f"PDF generation failed: {pdf_exc}")
+
     # ── Raw JSON ───────────────────────────────────────────────────────────────
     st.markdown("<br>", unsafe_allow_html=True)
     with st.expander("🔍 Raw API Response"):
@@ -1071,6 +1533,11 @@ def show_dashboard() -> None:
 # ---------------------------------------------------------------------------
 # Entry point — auth gate
 # ---------------------------------------------------------------------------
+# Inject the localStorage restore bridge first — runs before auth check.
+# On a cold refresh, this sets ?_restore_token=... and triggers one extra
+# rerun which _is_authenticated() then catches to restore the session.
+st.markdown(_RESTORE_JS, unsafe_allow_html=True)
+
 if _is_authenticated():
     show_dashboard()
 else:

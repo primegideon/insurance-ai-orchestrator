@@ -62,6 +62,58 @@ _RISK_EVAL_PROMPT = ChatPromptTemplate.from_messages([
 # ---------------------------------------------------------------------------
 _VALID_RECOMMENDATIONS = {"Approve", "Escalate to Underwriter", "Reject"}
 
+# ---------------------------------------------------------------------------
+# RAG confidence guardrail
+# ---------------------------------------------------------------------------
+# Keywords that indicate the vector store returned substantive, domain-specific
+# policy content rather than a generic or empty fallback string.
+_CONFIDENCE_KEYWORDS = {
+    "rule", "clause", "section", "article", "escalate", "provision",
+    "policy", "benefit", "underwriter", "investigation", "inception",
+    "anti-selection", "misrepresentation", "fraud",
+}
+
+# Minimum number of distinct confidence keywords that must appear in the
+# retrieved context for the evaluation to be considered trustworthy.
+_MIN_KEYWORD_HITS = 2
+
+
+def _assess_rag_confidence(policy_clauses: str) -> tuple[bool, str | None]:
+    """Return (requires_audit, reason_str) based on keyword density in retrieved clauses.
+
+    A low-confidence result means the pgvector store either returned nothing,
+    returned a generic fallback message, or returned text with too few domain-
+    specific policy keywords to ground the LLM's reasoning in real rules.
+
+    Args:
+        policy_clauses: The raw text returned by retrieve_policy_clauses().
+
+    Returns:
+        (False, None) when confidence is sufficient.
+        (True, reason_str) when the context is too weak to trust.
+    """
+    if not policy_clauses or policy_clauses.strip() in (
+        "No specific policy clauses found in documentation.",
+        "Error retrieving clauses.",
+        "",
+    ):
+        return True, (
+            "RAG retrieval returned no usable policy content. "
+            "The vector store may be empty or the query matched no relevant documents."
+        )
+
+    text_lower = policy_clauses.lower()
+    hits = sum(1 for kw in _CONFIDENCE_KEYWORDS if kw in text_lower)
+
+    if hits < _MIN_KEYWORD_HITS:
+        return True, (
+            f"Retrieved context scored only {hits}/{_MIN_KEYWORD_HITS} required policy "
+            f"keyword(s). The matched documents may not contain specific underwriting "
+            f"rules applicable to this claim. A human auditor should verify."
+        )
+
+    return False, None
+
 
 class InsuranceRiskEvaluator:
     """Evaluates life-insurance claims against policyholder profiles using
@@ -130,6 +182,15 @@ class InsuranceRiskEvaluator:
         )
         policy_clauses: str = retrieve_policy_clauses(rag_query, k=3)
 
+        # ── Guardrail: assess whether the RAG context is trustworthy ──────────
+        requires_audit, audit_reason = _assess_rag_confidence(policy_clauses)
+        if requires_audit:
+            logger.warning(
+                "Claim %s flagged for manual audit — weak RAG context: %s",
+                claim.claim_id,
+                audit_reason,
+            )
+
         prompt_values: dict[str, Any] = {
             "policy_clauses": policy_clauses,
             "policy_id": profile.policy_id,
@@ -156,13 +217,26 @@ class InsuranceRiskEvaluator:
                 f"ibm-watsonx-ai API call failed for claim '{claim.claim_id}': {exc}"
             ) from exc
 
-        return self._parse_response(raw_response, claim.claim_id, policy_clauses)
+        return self._parse_response(
+            raw_response,
+            claim.claim_id,
+            policy_clauses,
+            requires_audit,
+            audit_reason,
+        )
 
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _parse_response(self, raw: str, claim_id: str, policy_clauses: str = "") -> RiskEvaluationReport:
+    def _parse_response(
+        self,
+        raw: str,
+        claim_id: str,
+        policy_clauses: str = "",
+        requires_manual_audit: bool = False,
+        audit_reason: str | None = None,
+    ) -> RiskEvaluationReport:
         """Parse the raw LLM string into a :class:`RiskEvaluationReport`."""
         cleaned = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
 
@@ -216,4 +290,6 @@ class InsuranceRiskEvaluator:
             recommendation=recommendation,
             ai_reasoning=ai_reasoning,
             policy_clauses=policy_clauses or None,
+            requires_manual_audit=requires_manual_audit,
+            audit_reason=audit_reason,
         )
