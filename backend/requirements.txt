@@ -13,3 +13,4 @@ supabase>=2.3.0
 PyJWT>=2.8.0
 pypdf
 tiktoken
+reportlab>=4.0.0

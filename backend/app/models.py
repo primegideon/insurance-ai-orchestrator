@@ -26,3 +26,6 @@ class RiskEvaluationReport(BaseModel):
     flagged_anomalies: List[str]
     recommendation: str  # "Approve", "Escalate to Underwriter", or "Reject"
     ai_reasoning: str
+    policy_clauses: Optional[str] = None       # Raw RAG-retrieved policy text for traceability
+    requires_manual_audit: bool = False        # True when RAG context is too weak to trust automated verdict
+    audit_reason: Optional[str] = None        # Human-readable explanation of why audit was triggered

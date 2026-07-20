@@ -71,6 +71,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:8501",   # Streamlit frontend
         "http://localhost:3000",   # React / Next.js dev server
         "http://localhost:5173",   # Vite dev server
         "http://localhost:8080",   # Vue / generic
