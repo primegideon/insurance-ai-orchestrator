@@ -5,11 +5,13 @@ from typing import AsyncIterator
 from dotenv import load_dotenv
 load_dotenv()  # loads backend/.env before anything else reads os.environ
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.ai_engine import InsuranceRiskEvaluator
+from app.auth import init_jwks, verify_token
+from app.db import get_supabase, init_supabase
 from app.models import ClaimSubmission, PolicyholderProfile, RiskEvaluationReport
 
 # ---------------------------------------------------------------------------
@@ -42,8 +44,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Initialising InsuranceRiskEvaluator …")
     _evaluator = InsuranceRiskEvaluator()
     logger.info("InsuranceRiskEvaluator ready.")
+    logger.info("Initialising Supabase client …")
+    init_supabase()
+    logger.info("Supabase client ready.")
+    logger.info("Fetching Supabase JWKS public key …")
+    init_jwks()
+    logger.info("JWKS ready.")
     yield
-    # nothing to tear down – stateless LLM client
+    # nothing to tear down – stateless LLM client / Supabase HTTP client
     logger.info("Shutting down.")
 
 
@@ -89,7 +97,10 @@ def health_check() -> dict:
     summary="Evaluate a life insurance claim for risk",
     tags=["Risk Evaluation"],
 )
-def evaluate_claim(payload: EvaluateClaimRequest) -> RiskEvaluationReport:
+def evaluate_claim(
+    payload: EvaluateClaimRequest,
+    _user: dict = Depends(verify_token),
+) -> RiskEvaluationReport:
     """
     Accepts a **ClaimSubmission** and a **PolicyholderProfile**, runs them
     through IBM Granite via the InsuranceRiskEvaluator, and returns a
@@ -103,7 +114,34 @@ def evaluate_claim(payload: EvaluateClaimRequest) -> RiskEvaluationReport:
     try:
         if not _evaluator:
             raise HTTPException(status_code=503, detail="AI Engine not Initialized")
-        return _evaluator.evaluate(claim=payload.claim, profile=payload.profile)
+
+        report = _evaluator.evaluate(claim=payload.claim, profile=payload.profile)
+
+        # ------------------------------------------------------------------ #
+        # Persist the evaluation result to Supabase                           #
+        # ------------------------------------------------------------------ #
+        try:
+            get_supabase().table("evaluations").insert(
+                {
+                    "claim_id": report.claim_id,
+                    "policy_id": payload.claim.policy_id,
+                    "risk_score": report.risk_score,
+                    "recommendation": report.recommendation,
+                    "flagged_anomalies": report.flagged_anomalies,
+                    "ai_reasoning": report.ai_reasoning,
+                }
+            ).execute()
+            logger.info("Evaluation for claim %s persisted to Supabase.", report.claim_id)
+        except Exception as db_exc:
+            # Log and continue — a DB write failure must not block the API response
+            logger.error(
+                "Failed to persist evaluation for claim %s to Supabase: %s",
+                report.claim_id,
+                db_exc,
+            )
+
+        return report
+
     except ValueError as exc:
         # LLM returned malformed / unparseable output
         logger.error("Evaluation parse error: %s", exc)

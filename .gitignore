@@ -17,6 +17,9 @@ build/
 .env.*
 !.env.example
 
+# Streamlit secrets
+**/secrets.toml
+
 # IDE
 .idea/
 

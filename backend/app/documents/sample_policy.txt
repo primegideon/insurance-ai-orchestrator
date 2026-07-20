@@ -1,0 +1,7 @@
+Underwriting Policy Manual - Section 4: Cardiac, Respiratory, and Anti-Selection Claims
+
+Rule 42A - Early Cardiac Claims: Any claim submitted within the first 12 months of policy inception containing diagnosis codes related to acute myocardial infarction (I21.9) must be automatically escalated to a Senior Underwriter, regardless of the claim amount or the policyholder's income ratio. 
+
+Rule 42B - Asthma Disclosures: If a claim contains a diagnosis code for asthma (J45), verify the medical history. If asthma was not explicitly declared during onboarding, the claim must be rejected due to material misrepresentation.
+
+Rule 88C - The High-Risk Triangle: If a claim exceeds $100,000, the policyholder's age is under 35, and the policy was initiated less than 6 months ago, the claim must be flagged for "Anti-Selection Risk" and requires a mandatory secondary manual review by the fraud department.

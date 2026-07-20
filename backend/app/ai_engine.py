@@ -8,6 +8,7 @@ from langchain_ibm import ChatWatsonx
 from langchain_core.prompts import ChatPromptTemplate
 
 from app.models import ClaimSubmission, PolicyholderProfile, RiskEvaluationReport
+from app.rag import retrieve_policy_clauses
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,9 @@ _SYSTEM_MSG = (
 )
 
 _USER_TEMPLATE = """\
+## Relevant Policy Clauses
+{policy_clauses}
+
 ## Policyholder Profile
 - Policy ID          : {policy_id}
 - Age                : {age}
@@ -118,7 +122,16 @@ class InsuranceRiskEvaluator:
                         into a valid report structure.
             RuntimeError: If the ibm-watsonx-ai API call itself fails.
         """
+        # Build a query from the most distinctive claim fields for retrieval
+        rag_query = (
+            f"diagnosis {', '.join(claim.diagnosis_codes)} "
+            f"claim amount {claim.claim_amount} "
+            f"months since inception {claim.months_since_inception}"
+        )
+        policy_clauses = retrieve_policy_clauses(rag_query, k=3)
+
         prompt_values: dict[str, Any] = {
+            "policy_clauses": policy_clauses,
             "policy_id": profile.policy_id,
             "age": profile.age,
             "annual_income": profile.annual_income,

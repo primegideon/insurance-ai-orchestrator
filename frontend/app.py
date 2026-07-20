@@ -3,11 +3,13 @@ Insurance AI Orchestrator – Streamlit frontend
 Connects to the FastAPI backend at http://localhost:8000
 """
 
+import os
 import streamlit as st
 import requests
+from supabase import create_client, Client
 
 # ---------------------------------------------------------------------------
-# Page config
+# Page config  ── must be FIRST Streamlit call
 # ---------------------------------------------------------------------------
 st.set_page_config(
     page_title="Insurance AI Risk Underwriter",
@@ -17,7 +19,29 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------------------------
-# Custom CSS
+# Supabase client (reads SUPABASE_URL / SUPABASE_KEY from env or st.secrets)
+# ---------------------------------------------------------------------------
+def _get_secret(key: str) -> str:
+    """Read a config value from env vars first, then st.secrets if present."""
+    value = os.environ.get(key)
+    if not value:
+        try:
+            value = st.secrets[key]
+        except (KeyError, FileNotFoundError):
+            value = ""
+    return value or ""
+
+_SUPABASE_URL = _get_secret("SUPABASE_URL")
+_SUPABASE_KEY = _get_secret("SUPABASE_KEY")
+
+@st.cache_resource
+def _get_supabase_client() -> Client:
+    return create_client(_SUPABASE_URL, _SUPABASE_KEY)
+
+supabase: Client = _get_supabase_client()
+
+# ---------------------------------------------------------------------------
+# Custom CSS  ── shared between login screen and dashboard
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -82,6 +106,47 @@ st.markdown("""
         letter-spacing: 0.04em;
     }
 
+    /* ── Login card — target the native Streamlit form container ── */
+    [data-testid="stForm"] {
+        background: rgba(10, 14, 26, 0.80) !important;
+        border: 2px solid transparent !important;
+        border-radius: 20px !important;
+        padding: 2rem 2rem 1.6rem !important;
+        backdrop-filter: blur(28px) !important;
+        -webkit-backdrop-filter: blur(28px) !important;
+        background-clip: padding-box !important;
+        box-shadow:
+            0 0 0 2px rgba(0,174,239,0.55),
+            0 8px 48px rgba(0,114,198,0.40),
+            0 2px 80px rgba(0,174,239,0.15) !important;
+        margin-top: 0.5rem !important;
+    }
+
+    /* Form submit button — identical gradient to Evaluate Risk */
+    [data-testid="stForm"] [data-testid="stFormSubmitButton"] button {
+        background: linear-gradient(90deg, #0072C6 0%, #00AEEF 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 0.75rem 1.5rem !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.04em !important;
+        box-shadow: 0 4px 20px rgba(0,174,239,0.45), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+        transition: all 0.2s ease !important;
+        width: 100% !important;
+    }
+    [data-testid="stForm"] [data-testid="stFormSubmitButton"] button:hover {
+        background: linear-gradient(90deg, #0072C6 0%, #00AEEF 100%) !important;
+        box-shadow: 0 6px 32px rgba(0,174,239,0.75), inset 0 1px 0 rgba(255,255,255,0.22) !important;
+        transform: translateY(-2px) !important;
+        filter: brightness(1.15) !important;
+    }
+    [data-testid="stForm"] [data-testid="stFormSubmitButton"] button:active {
+        transform: translateY(0) !important;
+        filter: brightness(1) !important;
+    }
+
     /* ── 2. Glassmorphism input widgets ── */
     [data-testid="stTextInput"] input,
     [data-testid="stNumberInput"] input {
@@ -117,7 +182,7 @@ st.markdown("""
         border-bottom: 1px solid rgba(0,174,239,0.2);
     }
 
-    /* ── Evaluate button ── */
+    /* ── Evaluate / Login buttons ── */
     div.stButton > button {
         background: linear-gradient(90deg, #0072C6 0%, #00AEEF 100%) !important;
         color: #ffffff !important;
@@ -132,9 +197,10 @@ st.markdown("""
         width: 100% !important;
     }
     div.stButton > button:hover {
-        background: linear-gradient(90deg, #005fa3 0%, #009fd4 100%) !important;
-        box-shadow: 0 6px 28px rgba(0,174,239,0.55) !important;
+        background: linear-gradient(90deg, #0072C6 0%, #00AEEF 100%) !important;
+        box-shadow: 0 6px 32px rgba(0,174,239,0.75), inset 0 1px 0 rgba(255,255,255,0.22) !important;
         transform: translateY(-2px) !important;
+        filter: brightness(1.15) !important;
     }
     div.stButton > button:active { transform: translateY(0) !important; }
 
@@ -248,20 +314,89 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 # ---------------------------------------------------------------------------
-# Hero header
+# Session-state helpers
 # ---------------------------------------------------------------------------
-st.markdown("""
-<div class="hero">
-    <h1>🛡️ Insurance AI Risk Underwriter</h1>
-    <p>Real-time life insurance claim analysis powered by AI</p>
-    <div style="margin-top:0.6rem">
-        <span class="badge">⚡ IBM watsonx</span>
-        <span class="badge">🤖 Mistral Large</span>
-        <span class="badge">🔒 Life Insurance</span>
+def _is_authenticated() -> bool:
+    """Return True if a valid session token is stored in st.session_state."""
+    return bool(st.session_state.get("access_token"))
+
+
+def _store_session(session) -> None:
+    st.session_state["access_token"] = session.access_token
+    st.session_state["user_email"] = session.user.email
+
+
+def _clear_session() -> None:
+    for key in ("access_token", "user_email"):
+        st.session_state.pop(key, None)
+
+
+# ---------------------------------------------------------------------------
+# Login screen
+# ---------------------------------------------------------------------------
+def show_login() -> None:
+    """Render the centred login card and handle Supabase Auth sign-in."""
+
+    # Centred branding above the card
+    st.markdown("""
+    <div style="text-align:center;margin-top:2.5rem;margin-bottom:0.5rem">
+        <div style="font-size:2.8rem;line-height:1">🛡️</div>
+        <div style="color:#ffffff;font-size:1.6rem;font-weight:800;
+                    letter-spacing:-0.02em;margin-top:0.5rem">
+            Insurance AI Risk Underwriter
+        </div>
+        <div style="color:#6b7280;font-size:0.88rem;margin-top:0.4rem">
+            Sign in to access the underwriting dashboard
+        </div>
     </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+
+    # Narrow centred column — [1,2,1] keeps the card from spanning too wide
+    _, card_col, _ = st.columns([1, 2, 1])
+    with card_col:
+        # Glowing gradient title — pure st.markdown, no blocked wrappers
+        st.markdown(
+            """
+            <h2 style="
+                text-align: center;
+                margin: 0 0 1.2rem 0;
+                font-size: 1.5rem;
+                font-weight: 800;
+                letter-spacing: -0.02em;
+                background: -webkit-linear-gradient(left, #0072C6, #00AEEF);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                filter: drop-shadow(0 0 12px rgba(0,174,239,0.45));
+            ">🔐 Underwriter Portal</h2>
+            """,
+            unsafe_allow_html=True,
+        )
+        with st.form("login_form"):
+            email    = st.text_input("Email address", placeholder="you@example.com")
+            password = st.text_input("Password", type="password", placeholder="••••••••")
+            submitted = st.form_submit_button("Sign In", use_container_width=True)
+
+        if submitted:
+            if not email or not password:
+                st.error("Please enter both your email and password.")
+                return
+            try:
+                response = supabase.auth.sign_in_with_password(
+                    {"email": email, "password": password}
+                )
+                _store_session(response.session)
+                st.rerun()
+            except Exception as exc:
+                error_msg = str(exc)
+                if "Invalid login credentials" in error_msg or "invalid_credentials" in error_msg:
+                    st.error("❌ Incorrect email or password.")
+                elif "Email not confirmed" in error_msg:
+                    st.error("📧 Please confirm your email address before signing in.")
+                else:
+                    st.error(f"❌ Sign-in failed: {error_msg}")
+
 
 # ---------------------------------------------------------------------------
 # Helper
@@ -269,81 +404,119 @@ st.markdown("""
 def parse_list(raw: str) -> list[str]:
     return [x.strip() for x in raw.split(",") if x.strip()]
 
-# ---------------------------------------------------------------------------
-# Two-column form layout
-# ---------------------------------------------------------------------------
-form_left, form_right = st.columns(2, gap="large")
-
-with form_left:
-    st.markdown('<div class="section-title">📋 Claim Submission</div>', unsafe_allow_html=True)
-
-    claim_id = st.text_input("Claim ID", value="CLM-001", placeholder="CLM-001")
-    claim_policy_id = st.text_input("Policy ID", value="POL-777", placeholder="POL-777", key="cpid")
-    claim_amount = st.number_input("Claim Amount ($)", min_value=0.0, value=150000.0, step=1000.0, format="%.2f")
-    months_since_inception = st.number_input("Months Since Policy Inception", min_value=0, max_value=600, value=5, step=1)
-    diagnosis_codes_raw = st.text_input(
-        "Diagnosis Codes (comma-separated)",
-        value="I21.9",
-        placeholder="I21.9, E11, J45",
-        help="ICD-10 codes separated by commas",
-    )
-
-with form_right:
-    st.markdown('<div class="section-title">👤 Policyholder Profile</div>', unsafe_allow_html=True)
-
-    profile_policy_id = st.text_input("Policy ID", value="POL-777", placeholder="POL-777", key="ppid",
-                                       help="Must match the Policy ID in the claim")
-    age = st.number_input("Age", min_value=18, max_value=110, value=45, step=1)
-    annual_income = st.number_input("Annual Income ($)", min_value=0.0, value=25000.0, step=500.0, format="%.2f")
-    medical_history_raw = st.text_input(
-        "Medical History Flags (comma-separated)",
-        value="hypertension",
-        placeholder="hypertension, smoker, diabetes",
-        help="Leave blank if no prior conditions",
-    )
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ── Centred evaluate button ──────────────────────────────────────────────────
-_, btn_col, _ = st.columns([1, 2, 1])
-with btn_col:
-    evaluate_btn = st.button("⚡ Evaluate Risk", use_container_width=True)
-
-st.markdown("<hr>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
-# Results
+# Main dashboard
 # ---------------------------------------------------------------------------
-if not evaluate_btn:
-    st.markdown(
-        '<div style="text-align:center;color:#6b7280;padding:2.5rem 0;font-size:0.95rem">'
-        '📊 Fill in the form above and click <strong style="color:#00AEEF">Evaluate Risk</strong> '
-        'to run the AI analysis.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-else:
+def show_dashboard() -> None:
+    """Render the full insurance AI dashboard (only shown when authenticated)."""
+
+    # ── Hero header with sign-out ────────────────────────────────────────────
+    hero_col, signout_col = st.columns([5, 1])
+    with hero_col:
+        st.markdown("""
+        <div class="hero">
+            <h1>🛡️ Insurance AI Risk Underwriter</h1>
+            <p>Real-time life insurance claim analysis powered by AI</p>
+            <div style="margin-top:0.6rem">
+                <span class="badge">⚡ IBM watsonx</span>
+                <span class="badge">🤖 Mistral Large</span>
+                <span class="badge">🔒 Life Insurance</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with signout_col:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        user_email = st.session_state.get("user_email", "")
+        if user_email:
+            st.markdown(
+                f'<div style="color:#6b7280;font-size:0.78rem;text-align:right;'
+                f'margin-bottom:0.4rem">{user_email}</div>',
+                unsafe_allow_html=True,
+            )
+        if st.button("Sign Out", use_container_width=True):
+            try:
+                supabase.auth.sign_out()
+            except Exception:
+                pass
+            _clear_session()
+            st.rerun()
+
+    # ── Two-column form layout ───────────────────────────────────────────────
+    form_left, form_right = st.columns(2, gap="large")
+
+    with form_left:
+        st.markdown('<div class="section-title">📋 Claim Submission</div>', unsafe_allow_html=True)
+
+        claim_id              = st.text_input("Claim ID", value="CLM-001", placeholder="CLM-001")
+        claim_policy_id       = st.text_input("Policy ID", value="POL-777", placeholder="POL-777", key="cpid")
+        claim_amount          = st.number_input("Claim Amount ($)", min_value=0.0, value=150000.0, step=1000.0, format="%.2f")
+        months_since_inception = st.number_input("Months Since Policy Inception", min_value=0, max_value=600, value=5, step=1)
+        diagnosis_codes_raw   = st.text_input(
+            "Diagnosis Codes (comma-separated)",
+            value="I21.9",
+            placeholder="I21.9, E11, J45",
+            help="ICD-10 codes separated by commas",
+        )
+
+    with form_right:
+        st.markdown('<div class="section-title">👤 Policyholder Profile</div>', unsafe_allow_html=True)
+
+        profile_policy_id = st.text_input("Policy ID", value="POL-777", placeholder="POL-777", key="ppid",
+                                           help="Must match the Policy ID in the claim")
+        age            = st.number_input("Age", min_value=18, max_value=110, value=45, step=1)
+        annual_income  = st.number_input("Annual Income ($)", min_value=0.0, value=25000.0, step=500.0, format="%.2f")
+        medical_history_raw = st.text_input(
+            "Medical History Flags (comma-separated)",
+            value="hypertension",
+            placeholder="hypertension, smoker, diabetes",
+            help="Leave blank if no prior conditions",
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Centred evaluate button ──────────────────────────────────────────────
+    _, btn_col, _ = st.columns([1, 2, 1])
+    with btn_col:
+        evaluate_btn = st.button("⚡ Evaluate Risk", use_container_width=True)
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    # ── Results ─────────────────────────────────────────────────────────────
+    if not evaluate_btn:
+        st.markdown(
+            '<div style="text-align:center;color:#6b7280;padding:2.5rem 0;font-size:0.95rem">'
+            '📊 Fill in the form above and click <strong style="color:#00AEEF">Evaluate Risk</strong> '
+            'to run the AI analysis.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
     payload = {
         "claim": {
-            "claim_id": claim_id.strip(),
-            "policy_id": claim_policy_id.strip(),
-            "claim_amount": float(claim_amount),
+            "claim_id":              claim_id.strip(),
+            "policy_id":             claim_policy_id.strip(),
+            "claim_amount":          float(claim_amount),
             "months_since_inception": int(months_since_inception),
-            "diagnosis_codes": parse_list(diagnosis_codes_raw),
+            "diagnosis_codes":       parse_list(diagnosis_codes_raw),
         },
         "profile": {
-            "policy_id": profile_policy_id.strip(),
-            "age": int(age),
-            "annual_income": float(annual_income),
+            "policy_id":             profile_policy_id.strip(),
+            "age":                   int(age),
+            "annual_income":         float(annual_income),
             "medical_history_flags": parse_list(medical_history_raw),
         },
     }
+
+    access_token = st.session_state["access_token"]
 
     with st.spinner("🤖 Sending to IBM watsonx AI — this may take a few seconds…"):
         try:
             response = requests.post(
                 "http://localhost:8000/api/v1/evaluate-claim",
                 json=payload,
+                headers={"Authorization": f"Bearer {access_token}"},
                 timeout=90,
             )
             response.raise_for_status()
@@ -355,6 +528,10 @@ else:
             st.error("⏱️ Request timed out after 90 seconds.")
             st.stop()
         except requests.exceptions.HTTPError:
+            if response.status_code == 401:
+                st.error("🔒 Session expired. Please sign in again.")
+                _clear_session()
+                st.rerun()
             detail = ""
             try:
                 detail = response.json().get("detail", "")
@@ -370,7 +547,7 @@ else:
     flagged_anomalies: list = result.get("flagged_anomalies", [])
     rec_lower               = recommendation.lower()
 
-    # ── 4. Custom verdict banner ─────────────────────────────────────────────
+    # ── Custom verdict banner ────────────────────────────────────────────────
     st.markdown("### 📊 Evaluation Results")
 
     if "approve" in rec_lower:
@@ -479,3 +656,12 @@ else:
     st.markdown("<br>", unsafe_allow_html=True)
     with st.expander("🔍 Raw API Response"):
         st.json(result)
+
+
+# ---------------------------------------------------------------------------
+# Entry point  ── auth gate
+# ---------------------------------------------------------------------------
+if _is_authenticated():
+    show_dashboard()
+else:
+    show_login()
