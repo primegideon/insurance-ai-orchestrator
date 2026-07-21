@@ -34,10 +34,20 @@ _SUPABASE_URL = _get_secret("SUPABASE_URL")
 _SUPABASE_KEY = _get_secret("SUPABASE_KEY")
 
 @st.cache_resource
-def _get_supabase_client() -> Client:
+def _get_supabase_client() -> Client | None:
+    if not _SUPABASE_URL or not _SUPABASE_KEY:
+        return None
     return create_client(_SUPABASE_URL, _SUPABASE_KEY)
 
-supabase: Client = _get_supabase_client()
+supabase: Client | None = _get_supabase_client()
+if supabase is None:
+    st.error(
+        "⚠️ **Supabase credentials are not configured.**\n\n"
+        "Add `SUPABASE_URL` and `SUPABASE_KEY` to your Streamlit Cloud secrets "
+        "(**App settings → Secrets**).",
+        icon="🔐",
+    )
+    st.stop()
 
 # ---------------------------------------------------------------------------
 # Common ICD-10 codes and medical flags for multiselect dropdowns
