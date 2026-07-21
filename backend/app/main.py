@@ -88,7 +88,7 @@ app.add_middleware(
 @app.get("/", summary="Health check", tags=["Health"])
 def health_check() -> dict:
     """Returns 200 OK when the service is running."""
-    return {"status": "ok", "service": "insurance-ai-orchestrator"}
+    return {"status": "ok", "service": "trace-api"}
 
 
 @app.post(

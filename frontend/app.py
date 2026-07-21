@@ -12,7 +12,7 @@ from supabase import create_client, Client
 # Page config  ── must be FIRST Streamlit call
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Insurance AI Risk Underwriter",
+    page_title="Trace: Enterprise AI Underwriter",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -1088,7 +1088,7 @@ def show_dashboard() -> None:
             <div class="hero-left">
                 <div class="hero-logo">🛡️</div>
                 <div class="hero-title-group">
-                    <h1>Insurance AI Risk Underwriter</h1>
+                    <h1>Trace: Enterprise AI Underwriter</h1>
                     <p>Actuarial claim evaluation &amp; fraud detection · IBM watsonx.ai</p>
                 </div>
             </div>
@@ -1256,7 +1256,7 @@ def show_dashboard() -> None:
     with st.spinner("🤖 Sending to IBM watsonx AI — retrieving policy clauses and evaluating claim…"):
         try:
             response = requests.post(
-                "http://localhost:8000/api/v1/evaluate-claim",
+                "https://trace-api-u4rx.onrender.com/api/v1/evaluate-claim",
                 json=payload,
                 headers={"Authorization": f"Bearer {access_token}"},
                 timeout=90,
