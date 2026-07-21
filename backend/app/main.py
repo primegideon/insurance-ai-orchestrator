@@ -12,7 +12,8 @@ from pydantic import BaseModel
 from app.ai_engine import InsuranceRiskEvaluator
 from app.auth import init_jwks, verify_token
 from app.db import get_supabase, init_supabase
-from app.models import ClaimSubmission, PolicyholderProfile, RiskEvaluationReport
+from app.models import AccessRequest, ClaimSubmission, PolicyholderProfile, RiskEvaluationReport
+from app.rag import ingest_documents
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -59,8 +60,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 # App
 # ---------------------------------------------------------------------------
 app = FastAPI(
-    title="Insurance AI Orchestrator",
-    description="Life insurance risk evaluation powered by IBM Granite.",
+    title="Trace: Enterprise AI Underwriter",
+    description="Life insurance risk evaluation powered by IBM watsonx.ai (Mistral Large).",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -156,4 +157,69 @@ def evaluate_claim(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"AI service unavailable: {exc}",
+        ) from exc
+
+
+@app.post(
+    "/api/v1/ingest-documents",
+    status_code=status.HTTP_200_OK,
+    summary="Ingest policy documents into the vector store",
+    tags=["RAG"],
+)
+def ingest_documents_route(
+    _user: dict = Depends(verify_token),
+) -> dict:
+    """
+    Loads all `.txt` / `.pdf` files from `backend/app/documents/`, chunks them,
+    embeds them with IBM Slate, and upserts the vectors into Supabase pgvector.
+
+    Place your internal policy documents in `backend/app/documents/` before calling
+    this endpoint.  Returns the number of chunks ingested.
+    """
+    try:
+        result = ingest_documents()
+        logger.info("Document ingestion complete: %s", result)
+        return {"status": "ok", "detail": result}
+    except Exception as exc:
+        logger.error("Document ingestion failed: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ingestion failed: {exc}",
+        ) from exc
+
+
+@app.post(
+    "/api/v1/access-request",
+    status_code=status.HTTP_200_OK,
+    summary="Submit an enterprise access request",
+    tags=["Access"],
+)
+def submit_access_request(payload: AccessRequest) -> dict:
+    """
+    Unauthenticated endpoint — called from the login screen when a new user
+    clicks "Request Enterprise Access".
+
+    Validates the payload and writes a row to the `access_requests` Supabase
+    table.  The IT administrator reviews pending rows in the Supabase Dashboard.
+    """
+    try:
+        get_supabase().table("access_requests").insert(
+            {
+                "name":       payload.name,
+                "work_email": payload.work_email,
+                "role":       payload.role,
+            }
+        ).execute()
+        logger.info(
+            "Access request submitted — name=%s email=%s role=%s",
+            payload.name,
+            payload.work_email,
+            payload.role,
+        )
+        return {"status": "submitted"}
+    except Exception as exc:
+        logger.error("Failed to persist access request: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to submit access request. Please try again later.",
         ) from exc

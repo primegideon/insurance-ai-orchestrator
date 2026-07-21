@@ -1,5 +1,19 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
+
+
+# 0. Access request (unauthenticated — submitted from the login screen)
+class AccessRequest(BaseModel):
+    name: str
+    work_email: str
+    role: str
+
+    @field_validator("name", "work_email", "role")
+    @classmethod
+    def must_not_be_blank(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Field must not be blank")
+        return v.strip()
 
 
 # 1. The Customer's Background

@@ -4,4 +4,4 @@ Rule 42A - Early Cardiac Claims: Any claim submitted within the first 12 months 
 
 Rule 42B - Asthma Disclosures: If a claim contains a diagnosis code for asthma (J45), verify the medical history. If asthma was not explicitly declared during onboarding, the claim must be rejected due to material misrepresentation.
 
-Rule 88C - The High-Risk Triangle: If a claim exceeds $100,000, the policyholder's age is under 35, and the policy was initiated less than 6 months ago, the claim must be flagged for "Anti-Selection Risk" and requires a mandatory secondary manual review by the fraud department.
+Rule 88C - The High-Risk Triangle: If a claim exceeds $100,000, the policyholder's age is over 65, and the policy was initiated less than 36 months ago, the claim must be flagged for "Anti-Selection Risk" and requires a mandatory secondary manual review by the fraud department. The simultaneous co-occurrence of advanced age, low policy tenure, and a high claim amount is the strongest composite fraud indicator in life insurance underwriting.

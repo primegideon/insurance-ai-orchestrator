@@ -1,4 +1,4 @@
-# 🛡️ Insurance AI Orchestrator
+# 🛡️ Trace: Enterprise AI Underwriter
 ### Enterprise-Grade AI Risk Underwriting Orchestrator
 #### IBM AI Builders Hackathon — Submission
 
@@ -34,7 +34,7 @@ The industry needs a system that applies these rules *holistically*, *every time
 
 ## 💡 Solution
 
-**Insurance AI Orchestrator** is a production-architected full-stack application that automates the first-pass underwriting decision for life insurance claims:
+**Trace: Enterprise AI Underwriter** is a production-architected full-stack application that automates the first-pass underwriting decision for life insurance claims:
 
 1. An underwriter signs in via the Supabase-authenticated Streamlit dashboard (session persists across browser refreshes via a `localStorage` bridge).
 2. They submit a claim and policyholder profile using **dropdowns, multiselects, and sliders** — all ICD-10 coded, with a live claim/income ratio indicator.
@@ -43,6 +43,22 @@ The industry needs a system that applies these rules *holistically*, *every time
 5. The **IBM watsonx.ai** Mistral Large model evaluates the claim holistically against domain-specific underwriting rules *and* the retrieved policy citations, returning a strict JSON verdict.
 6. The verdict is **persisted to Supabase PostgreSQL**, rendered on the dashboard with a redesigned professional verdict card (SVG risk ring, coloured accent bar, status chip), a **Visual Traceability** panel, anomaly pills, and a full AI reasoning panel.
 7. The underwriter can download a **PDF Audit Summary** — generated in-memory with ReportLab — containing all claim data, retrieved clauses, and the AI decision, formatted for file archiving.
+
+---
+
+## 📸 Screenshots
+
+| Sign In | Dashboard |
+|---|---|
+| ![Sign-in screen](images/sign_in.png) | ![Main dashboard](images/dashboard.jpeg) |
+
+| Evaluation Results | AI Reasoning |
+|---|---|
+| ![Evaluation results & verdict card](images/evaluation_results.jpeg) | ![AI reasoning & traceability panel](images/ai_reasoning.jpeg) |
+
+| Swagger UI |
+|---|
+| ![Swagger UI — API docs](images/swagger_ui.png) |
 
 ---
 

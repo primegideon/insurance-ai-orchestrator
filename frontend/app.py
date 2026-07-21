@@ -1,6 +1,7 @@
 """
-Insurance AI Orchestrator – Streamlit frontend
-Connects to the FastAPI backend at http://localhost:8000
+Trace: Enterprise AI Underwriter – Streamlit frontend
+Backend URL is configured via the BACKEND_URL environment variable or st.secrets.
+Defaults to the Render deployment; override with http://localhost:8000 for local dev.
 """
 
 import os
@@ -19,7 +20,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------------------------
-# Supabase client
+# Secrets helper  (env → st.secrets fallback)
 # ---------------------------------------------------------------------------
 def _get_secret(key: str) -> str:
     value = os.environ.get(key)
@@ -29,6 +30,19 @@ def _get_secret(key: str) -> str:
         except (KeyError, FileNotFoundError):
             value = ""
     return value or ""
+
+# ---------------------------------------------------------------------------
+# Backend URL  ── set BACKEND_URL in your env / Streamlit Cloud secrets to
+# override.  Falls back to the Render deployment so Cloud hosting works OOTB.
+# For local dev: BACKEND_URL=http://localhost:8000
+# ---------------------------------------------------------------------------
+_BACKEND_URL = (
+    _get_secret("BACKEND_URL") or "https://trace-api-u4rx.onrender.com"
+).rstrip("/")
+
+# ---------------------------------------------------------------------------
+# Supabase client
+# ---------------------------------------------------------------------------
 
 _SUPABASE_URL = _get_secret("SUPABASE_URL")
 _SUPABASE_KEY = _get_secret("SUPABASE_KEY")
@@ -808,7 +822,7 @@ def show_login() -> None:
         <div style="color:#ffffff;font-size:1.65rem;font-weight:800;
                     letter-spacing:-0.025em;margin-top:0.6rem;
                     text-shadow:0 2px 14px rgba(0,0,0,0.5)">
-            Insurance AI Risk Underwriter
+            Trace: Enterprise AI Underwriter
         </div>
         <div style="color:#4b5563;font-size:0.88rem;margin-top:0.45rem">
             Powered by IBM watsonx.ai · Supabase · FastAPI
@@ -832,6 +846,109 @@ def show_login() -> None:
             email    = st.text_input("Email address", placeholder="you@example.com")
             password = st.text_input("Password", type="password", placeholder="••••••••")
             submitted = st.form_submit_button("Sign In →", use_container_width=True)
+
+        # ── Divider + ghost CTA ─────────────────────────────────────────────
+        st.markdown("""
+        <div style="
+            display:flex; align-items:center; gap:0.75rem;
+            margin: 0.9rem 0 0.75rem 0;
+        ">
+            <div style="flex:1; height:1px; background:rgba(255,255,255,0.08)"></div>
+            <span style="color:#4b5563; font-size:0.72rem; letter-spacing:0.08em;
+                         text-transform:uppercase; white-space:nowrap">
+                Don't have access?
+            </span>
+            <div style="flex:1; height:1px; background:rgba(255,255,255,0.08)"></div>
+        </div>
+        <style>
+            /* Ghost/outline style scoped to the request-access button only */
+            div[data-testid="stVerticalBlock"] div.request-access-btn > div.stButton > button {
+                background: transparent !important;
+                color: #7ab3d4 !important;
+                border: 1.5px solid rgba(122,179,212,0.4) !important;
+                border-radius: 10px !important;
+                font-size: 0.85rem !important;
+                font-weight: 500 !important;
+                letter-spacing: 0.06em !important;
+                box-shadow: none !important;
+                padding: 0.6rem 1.5rem !important;
+                opacity: 0.85;
+                transition: all 0.18s ease !important;
+            }
+            div[data-testid="stVerticalBlock"] div.request-access-btn > div.stButton > button:hover {
+                background: rgba(122,179,212,0.07) !important;
+                border-color: rgba(122,179,212,0.75) !important;
+                color: #aed4ee !important;
+                opacity: 1;
+                transform: none !important;
+                filter: none !important;
+                box-shadow: none !important;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # ── Access-request toggle + inline form ────────────────────────────
+        if "show_access_form" not in st.session_state:
+            st.session_state["show_access_form"] = False
+
+        with st.container():
+            st.markdown('<div class="request-access-btn">', unsafe_allow_html=True)
+            if st.button(
+                "Request Enterprise Access",
+                use_container_width=True,
+                help="Submit an access request to your IT administrator",
+            ):
+                st.session_state["show_access_form"] = not st.session_state["show_access_form"]
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        if st.session_state["show_access_form"]:
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.form("access_request_form", clear_on_submit=True):
+                st.markdown(
+                    '<div style="font-size:0.8rem;font-weight:700;color:#7ab3d4;'
+                    'letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.5rem">'
+                    'Enterprise Access Request</div>',
+                    unsafe_allow_html=True,
+                )
+                req_name  = st.text_input("Full Name",   placeholder="Jane Smith")
+                req_email = st.text_input("Work Email",  placeholder="jane@company.com")
+                req_role  = st.selectbox(
+                    "Role",
+                    ["Underwriter", "Actuary", "Compliance Officer", "IT Administrator", "Other"],
+                )
+                col_submit, col_cancel = st.columns([2, 1])
+                with col_submit:
+                    req_submitted = st.form_submit_button("Submit Request", use_container_width=True)
+                with col_cancel:
+                    req_cancelled = st.form_submit_button(
+                        "Cancel",
+                        use_container_width=True,
+                        type="secondary",
+                    )
+
+            if req_cancelled:
+                st.session_state["show_access_form"] = False
+                st.rerun()
+
+            if req_submitted:
+                if not req_name.strip() or not req_email.strip():
+                    st.error("Please fill in your name and work email.")
+                else:
+                    try:
+                        ar = requests.post(
+                            f"{_BACKEND_URL}/api/v1/access-request",
+                            json={"name": req_name.strip(), "work_email": req_email.strip(), "role": req_role},
+                            timeout=15,
+                        )
+                        if ar.status_code == 200:
+                            st.session_state["show_access_form"] = False
+                            st.toast("Access request submitted — IT admin will be in touch", icon="✅")
+                            st.rerun()
+                        else:
+                            detail = ar.json().get("detail", ar.text)
+                            st.error(f"❌ Submission failed: {detail}")
+                    except requests.exceptions.RequestException as e:
+                        st.error(f"❌ Could not reach the backend: {e}")
 
         if submitted:
             if not email or not password:
@@ -910,7 +1027,7 @@ def _build_audit_pdf(
         topMargin=2.2 * cm,
         bottomMargin=2.2 * cm,
         title=f"Underwriting Audit Report — {claim_id}",
-        author="Insurance AI Risk Underwriter",
+        author="Trace: Enterprise AI Underwriter",
     )
 
     # ── Colour palette ───────────────────────────────────────────────────────
@@ -1075,7 +1192,7 @@ def _build_audit_pdf(
     story.append(HRFlowable(width="100%", thickness=0.5, color=C_RULE_LINE))
     story.append(Spacer(1, 0.15 * cm))
     story.append(Paragraph(
-        f"Generated by Insurance AI Risk Underwriter &nbsp;·&nbsp; IBM watsonx.ai (Mistral Large) "
+        f"Generated by Trace: Enterprise AI Underwriter &nbsp;·&nbsp; IBM watsonx.ai (Mistral Large) "
         f"&nbsp;·&nbsp; {generated_at} &nbsp;·&nbsp; This document is for internal underwriting use only.",
         s_footer,
     ))
@@ -1266,7 +1383,7 @@ def show_dashboard() -> None:
     with st.spinner("🤖 Sending to IBM watsonx AI — retrieving policy clauses and evaluating claim…"):
         try:
             response = requests.post(
-                "https://trace-api-u4rx.onrender.com/api/v1/evaluate-claim",
+                f"{_BACKEND_URL}/api/v1/evaluate-claim",
                 json=payload,
                 headers={"Authorization": f"Bearer {access_token}"},
                 timeout=90,
@@ -1274,7 +1391,11 @@ def show_dashboard() -> None:
             response.raise_for_status()
             result = response.json()
         except requests.exceptions.ConnectionError:
-            st.error("❌ Cannot connect to the backend. Is the FastAPI server running on port 8000?")
+            st.error(
+                f"❌ Cannot connect to the backend at `{_BACKEND_URL}`. "
+                "If running locally, start the FastAPI server first: "
+                "`backend\\.venv\\Scripts\\python.exe backend\\run.py`"
+            )
             st.stop()
         except requests.exceptions.Timeout:
             st.error("⏱️ Request timed out after 90 seconds.")
