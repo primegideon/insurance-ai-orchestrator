@@ -111,6 +111,10 @@ flowchart TD
     UI --> PDF
 ```
 
+
+* 🛡️ **Enterprise Security & Compliance:** See the [SECURITY.md](SECURITY.md) file for our complete V4.0 threat mitigation plan, including LLM firewalls and DLP masking for medical data.
+
+
 ---
 
 ## 🚀 Development Journey
