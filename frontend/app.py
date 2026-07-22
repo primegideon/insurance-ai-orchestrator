@@ -1673,11 +1673,6 @@ def show_dashboard() -> None:
 # ---------------------------------------------------------------------------
 # Entry point — auth gate
 # ---------------------------------------------------------------------------
-# Inject the localStorage restore bridge first — runs before auth check.
-# On a cold refresh, this sets ?_restore_token=... and triggers one extra
-# rerun which _is_authenticated() then catches to restore the session.
-st.markdown(_RESTORE_JS, unsafe_allow_html=True)
-
 if _is_authenticated():
     show_dashboard()
 else:
