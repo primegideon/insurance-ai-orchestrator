@@ -176,18 +176,14 @@ def ingest_documents_route(
     Place your internal policy documents in `backend/app/documents/` before calling
     this endpoint.  Returns the number of chunks ingested.
     """
-    try:
-        result = ingest_documents()
-        logger.info("Document ingestion complete: %s", result)
-        return {"status": "ok", "detail": result}
-    except Exception as exc:
-        import traceback
-        tb = traceback.format_exc()
-        logger.error("Document ingestion failed:\n%s", tb)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ingestion failed: {exc!r} | Traceback: {tb}",
-        ) from exc
+    # ingest_documents() never raises — it returns a steps dict where any
+    # failed step has an ERROR string value.  We always return 200 so
+    # Cloudflare/Render cannot intercept the response before FastAPI writes it.
+    steps = ingest_documents()
+    logger.info("Document ingestion complete: %s", steps)
+    failed = [k for k, v in steps.items() if isinstance(v, str) and v.startswith("ERROR")]
+    status_str = "error" if failed else "ok"
+    return {"status": status_str, "steps": steps}
 
 
 @app.post(
