@@ -244,6 +244,55 @@ st.markdown("""
     }
 
     /* ════════════════════════════════════════════
+       MOBILE RESPONSIVE — hero + layout
+    ════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+        .hero {
+            padding: 1rem 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .hero-inner {
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .hero-left {
+            gap: 0.75rem;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .hero-logo {
+            width: 36px; height: 36px;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .hero-title-group h1 {
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .hero-title-group p {
+            display: none;
+        }
+        .hero-right {
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+        .hero-status-pill {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.6rem;
+        }
+        .hero-signout-btn {
+            font-size: 0.68rem;
+            padding: 0.3rem 0.65rem;
+        }
+        .form-panel {
+            padding: 1.1rem 1rem 1rem;
+            border-radius: 12px;
+        }
+    }
+
+    /* ════════════════════════════════════════════
        FORM PANELS
     ════════════════════════════════════════════ */
     .form-panel {
