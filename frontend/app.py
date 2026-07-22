@@ -936,6 +936,10 @@ def show_login() -> None:
         </style>
         """, unsafe_allow_html=True)
 
+        # ── Access-request toggle + inline form ────────────────────────────
+        if "show_access_form" not in st.session_state:
+            st.session_state["show_access_form"] = False
+
         with st.container():
             st.markdown('<div class="request-access-btn">', unsafe_allow_html=True)
             if st.button(
@@ -943,8 +947,57 @@ def show_login() -> None:
                 use_container_width=True,
                 help="Submit an access request to your IT administrator",
             ):
-                st.toast("Access request routed to IT admin", icon="✅")
+                st.session_state["show_access_form"] = not st.session_state["show_access_form"]
             st.markdown('</div>', unsafe_allow_html=True)
+
+        if st.session_state["show_access_form"]:
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.form("access_request_form", clear_on_submit=True):
+                st.markdown(
+                    '<div style="font-size:0.8rem;font-weight:700;color:#7ab3d4;'
+                    'letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.5rem">'
+                    'Enterprise Access Request</div>',
+                    unsafe_allow_html=True,
+                )
+                req_name  = st.text_input("Full Name",   placeholder="Jane Smith")
+                req_email = st.text_input("Work Email",  placeholder="jane@company.com")
+                req_role  = st.selectbox(
+                    "Role",
+                    ["Underwriter", "Actuary", "Compliance Officer", "IT Administrator", "Other"],
+                )
+                col_submit, col_cancel = st.columns([2, 1])
+                with col_submit:
+                    req_submitted = st.form_submit_button("Submit Request", use_container_width=True)
+                with col_cancel:
+                    req_cancelled = st.form_submit_button(
+                        "Cancel",
+                        use_container_width=True,
+                        type="secondary",
+                    )
+
+            if req_cancelled:
+                st.session_state["show_access_form"] = False
+                st.rerun()
+
+            if req_submitted:
+                if not req_name.strip() or not req_email.strip():
+                    st.error("Please fill in your name and work email.")
+                else:
+                    try:
+                        ar = requests.post(
+                            f"{_BACKEND_URL}/api/v1/access-request",
+                            json={"name": req_name.strip(), "work_email": req_email.strip(), "role": req_role},
+                            timeout=15,
+                        )
+                        if ar.status_code == 200:
+                            st.session_state["show_access_form"] = False
+                            st.toast("Access request submitted — IT admin will be in touch", icon="✅")
+                            st.rerun()
+                        else:
+                            detail = ar.json().get("detail", ar.text)
+                            st.error(f"❌ Submission failed: {detail}")
+                    except requests.exceptions.RequestException as e:
+                        st.error(f"❌ Could not reach the backend: {e}")
 
         if submitted:
             if not email or not password:
