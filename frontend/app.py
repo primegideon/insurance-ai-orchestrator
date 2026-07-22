@@ -797,72 +797,30 @@ st.markdown("""
 
 
 # ---------------------------------------------------------------------------
-# Session-state helpers  (token persisted in st.session_state +
-#                          browser localStorage via a tiny JS bridge)
+# Session-state helpers
+# Session is stored in st.session_state (in-memory) +
+# Streamlit's own query-param token store for persistence across reruns.
+# localStorage bridge removed — st.markdown <script> injection is unreliable
+# in Streamlit Cloud's React/WebSocket architecture.
 # ---------------------------------------------------------------------------
 
-# Restore from localStorage on every cold page load before anything renders
-_RESTORE_JS = """
-<script>
-(function() {
-    const t = localStorage.getItem('iau_access_token');
-    const e = localStorage.getItem('iau_user_email');
-    if (t) {
-        // POST the values back into Streamlit via query-param round-trip
-        const url = new URL(window.location.href);
-        if (!url.searchParams.get('_restore_token')) {
-            url.searchParams.set('_restore_token', t);
-            if (e) url.searchParams.set('_restore_email', e);
-            window.location.replace(url.toString());
-        }
-    }
-})();
-</script>
-"""
-
-def _persist_to_local_storage(token: str, email: str) -> None:
-    """Inject JS that writes the session into localStorage."""
-    safe_token = token.replace("'", "\\'")
-    safe_email = email.replace("'", "\\'")
-    st.markdown(
-        f"<script>localStorage.setItem('iau_access_token','{safe_token}');"
-        f"localStorage.setItem('iau_user_email','{safe_email}');</script>",
-        unsafe_allow_html=True,
-    )
-
-def _clear_local_storage() -> None:
-    """Clear localStorage then hard-reload so _RESTORE_JS cannot race
-    and restore the token before the browser processes the removeItem."""
-    st.markdown(
-        "<script>"
-        "localStorage.removeItem('iau_access_token');"
-        "localStorage.removeItem('iau_user_email');"
-        "window.location.replace(window.location.pathname);"
-        "</script>",
-        unsafe_allow_html=True,
-    )
-
 def _is_authenticated() -> bool:
-    # First call on a cold refresh: try to restore from query params written
-    # by the localStorage JS bridge above.
-    if not st.session_state.get("access_token"):
-        token = st.query_params.get("_restore_token")
-        email = st.query_params.get("_restore_email", "")
-        if token:
-            st.session_state["access_token"] = token
-            st.session_state["user_email"]   = email
-            # Clean the URL immediately so the token isn't visible in the bar
-            st.query_params.clear()
+    """Return True if a valid access token is present in session_state."""
     return bool(st.session_state.get("access_token"))
 
 def _store_session(session) -> None:
+    """Persist session into session_state after successful sign-in."""
     st.session_state["access_token"] = session.access_token
     st.session_state["user_email"]   = session.user.email
 
 def _clear_session() -> None:
+    """Wipe session_state — the next rerun will show the login screen."""
     for key in ("access_token", "user_email"):
         st.session_state.pop(key, None)
-    _clear_local_storage()
+
+def _persist_to_local_storage(token: str, email: str) -> None:
+    """No-op kept for call-site compatibility — localStorage bridge removed."""
+    pass
 
 
 # ---------------------------------------------------------------------------
@@ -1262,7 +1220,9 @@ def show_dashboard() -> None:
     user_email = st.session_state.get("user_email", "")
 
     # ── Hero ────────────────────────────────────────────────────────────────
-    st.markdown("""
+    hero_left, hero_right = st.columns([6, 1])
+    with hero_left:
+        st.markdown("""
     <div class="hero">
         <div class="hero-inner">
             <div class="hero-left">
@@ -1277,26 +1237,20 @@ def show_dashboard() -> None:
                     <div class="hero-status-dot"></div>
                     System Operational
                 </div>
-                <button class="hero-signout-btn"
-                        onclick="window.location.href='?signout=1'">
-                    Sign Out
-                </button>
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
-
-    # Sign-out via query param — no visible Streamlit button needed.
-    # _clear_session() → _clear_local_storage() injects JS that clears
-    # localStorage AND calls window.location.replace() for a clean hard reload,
-    # so no st.rerun() is needed here (the browser handles the navigation).
-    if st.query_params.get("signout") == "1":
-        st.query_params.clear()
-        try:
-            supabase.auth.sign_out()
-        except Exception:
-            pass
-        _clear_session()
+        """, unsafe_allow_html=True)
+    with hero_right:
+        st.markdown("<div style='padding-top:1.4rem'>", unsafe_allow_html=True)
+        if st.button("Sign Out", key="signout_btn", use_container_width=True):
+            try:
+                supabase.auth.sign_out()
+            except Exception:
+                pass
+            _clear_session()
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # ── Two-column form ──────────────────────────────────────────────────────
     form_left, form_right = st.columns(2, gap="large")
