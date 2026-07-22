@@ -181,10 +181,12 @@ def ingest_documents_route(
         logger.info("Document ingestion complete: %s", result)
         return {"status": "ok", "detail": result}
     except Exception as exc:
-        logger.error("Document ingestion failed: %s", exc)
+        import traceback
+        tb = traceback.format_exc()
+        logger.error("Document ingestion failed:\n%s", tb)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ingestion failed: {exc}",
+            detail=f"Ingestion failed: {exc!r} | Traceback: {tb}",
         ) from exc
 
 

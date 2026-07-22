@@ -44,7 +44,7 @@ def ingest_documents() -> str:
     
     for file_path in DOCS_DIR.glob("*"):
         if file_path.suffix == ".txt":
-            documents.extend(TextLoader(str(file_path)).load())
+            documents.extend(TextLoader(str(file_path), encoding="utf-8").load())
         elif file_path.suffix == ".pdf":
             documents.extend(PyPDFLoader(str(file_path)).load())
             
