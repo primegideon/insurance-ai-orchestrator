@@ -1220,9 +1220,8 @@ def show_dashboard() -> None:
     user_email = st.session_state.get("user_email", "")
 
     # ── Hero ────────────────────────────────────────────────────────────────
-    # The hero is pure HTML for the design. The Sign Out button is a real
-    # st.button hidden behind the styled hero-signout-btn via CSS — so the
-    # original design is preserved while Streamlit handles the click natively.
+    # Hero is full HTML. Sign Out is a real st.button rendered in a narrow
+    # column that overlaps the hero's right side via negative margin CSS.
     st.markdown("""
     <div class="hero">
         <div class="hero-inner">
@@ -1238,12 +1237,21 @@ def show_dashboard() -> None:
                     <div class="hero-status-dot"></div>
                     System Operational
                 </div>
+                <!-- Sign Out placeholder keeps the flex layout correct -->
+                <div style="width:90px"></div>
             </div>
         </div>
     </div>
     <style>
-        /* Make the real Streamlit Sign Out button look like the hero-signout-btn */
-        div[data-testid="stButton"][id="signout_wrap"] > button,
+        /* Pull the signout column up into the hero banner */
+        div.signout-wrap {
+            margin-top: -3.55rem;
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 2.8rem;
+            position: relative;
+            z-index: 20;
+        }
         div.signout-wrap > div.stButton > button {
             background: transparent !important;
             border: 1px solid rgba(255,255,255,0.12) !important;
@@ -1254,18 +1262,22 @@ def show_dashboard() -> None:
             padding: 0.38rem 1rem !important;
             border-radius: 8px !important;
             box-shadow: none !important;
-            margin-top: -3.6rem !important;
-            float: right !important;
-            margin-right: 2.8rem !important;
-            position: relative !important;
-            z-index: 10 !important;
-            transition: border-color 0.15s, color 0.15s !important;
             width: auto !important;
+            min-width: 0 !important;
+            transition: border-color 0.15s, color 0.15s !important;
         }
         div.signout-wrap > div.stButton > button:hover {
             border-color: rgba(239,68,68,0.4) !important;
             color: #fca5a5 !important;
             background: transparent !important;
+            transform: none !important;
+            filter: none !important;
+        }
+        @media (max-width: 640px) {
+            div.signout-wrap {
+                padding-right: 1.2rem;
+                margin-top: -3.1rem;
+            }
         }
     </style>
     """, unsafe_allow_html=True)
