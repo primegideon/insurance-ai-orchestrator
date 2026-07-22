@@ -1220,9 +1220,10 @@ def show_dashboard() -> None:
     user_email = st.session_state.get("user_email", "")
 
     # ── Hero ────────────────────────────────────────────────────────────────
-    hero_left, hero_right = st.columns([6, 1])
-    with hero_left:
-        st.markdown("""
+    # The hero is pure HTML for the design. The Sign Out button is a real
+    # st.button hidden behind the styled hero-signout-btn via CSS — so the
+    # original design is preserved while Streamlit handles the click natively.
+    st.markdown("""
     <div class="hero">
         <div class="hero-inner">
             <div class="hero-left">
@@ -1240,17 +1241,44 @@ def show_dashboard() -> None:
             </div>
         </div>
     </div>
-        """, unsafe_allow_html=True)
-    with hero_right:
-        st.markdown("<div style='padding-top:1.4rem'>", unsafe_allow_html=True)
-        if st.button("Sign Out", key="signout_btn", use_container_width=True):
-            try:
-                supabase.auth.sign_out()
-            except Exception:
-                pass
-            _clear_session()
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+    <style>
+        /* Make the real Streamlit Sign Out button look like the hero-signout-btn */
+        div[data-testid="stButton"][id="signout_wrap"] > button,
+        div.signout-wrap > div.stButton > button {
+            background: transparent !important;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            color: #64748b !important;
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.04em !important;
+            padding: 0.38rem 1rem !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+            margin-top: -3.6rem !important;
+            float: right !important;
+            margin-right: 2.8rem !important;
+            position: relative !important;
+            z-index: 10 !important;
+            transition: border-color 0.15s, color 0.15s !important;
+            width: auto !important;
+        }
+        div.signout-wrap > div.stButton > button:hover {
+            border-color: rgba(239,68,68,0.4) !important;
+            color: #fca5a5 !important;
+            background: transparent !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="signout-wrap">', unsafe_allow_html=True)
+    if st.button("Sign Out", key="signout_btn"):
+        try:
+            supabase.auth.sign_out()
+        except Exception:
+            pass
+        _clear_session()
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # ── Two-column form ──────────────────────────────────────────────────────
     form_left, form_right = st.columns(2, gap="large")
