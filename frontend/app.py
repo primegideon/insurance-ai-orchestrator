@@ -797,30 +797,68 @@ st.markdown("""
 
 
 # ---------------------------------------------------------------------------
-# Session-state helpers
-# Session is stored in st.session_state (in-memory) +
-# Streamlit's own query-param token store for persistence across reruns.
-# localStorage bridge removed — st.markdown <script> injection is unreliable
-# in Streamlit Cloud's React/WebSocket architecture.
+# Session-state helpers  (token persisted in st.session_state +
+#                          browser localStorage via a tiny JS bridge)
 # ---------------------------------------------------------------------------
 
+# Restore from localStorage on every cold page load before anything renders
+_RESTORE_JS = """
+<script>
+(function() {
+    const t = localStorage.getItem('iau_access_token');
+    const e = localStorage.getItem('iau_user_email');
+    if (t) {
+        // POST the values back into Streamlit via query-param round-trip
+        const url = new URL(window.location.href);
+        if (!url.searchParams.get('_restore_token')) {
+            url.searchParams.set('_restore_token', t);
+            if (e) url.searchParams.set('_restore_email', e);
+            window.location.replace(url.toString());
+        }
+    }
+})();
+</script>
+"""
+
+def _persist_to_local_storage(token: str, email: str) -> None:
+    """Inject JS that writes the session into localStorage."""
+    safe_token = token.replace("'", "\\'")
+    safe_email = email.replace("'", "\\'")
+    st.markdown(
+        f"<script>localStorage.setItem('iau_access_token','{safe_token}');"
+        f"localStorage.setItem('iau_user_email','{safe_email}');</script>",
+        unsafe_allow_html=True,
+    )
+
+def _clear_local_storage() -> None:
+    """Inject JS that removes the session from localStorage."""
+    st.markdown(
+        "<script>localStorage.removeItem('iau_access_token');"
+        "localStorage.removeItem('iau_user_email');</script>",
+        unsafe_allow_html=True,
+    )
+
 def _is_authenticated() -> bool:
-    """Return True if a valid access token is present in session_state."""
+    # First call on a cold refresh: try to restore from query params written
+    # by the localStorage JS bridge above.
+    if not st.session_state.get("access_token"):
+        token = st.query_params.get("_restore_token")
+        email = st.query_params.get("_restore_email", "")
+        if token:
+            st.session_state["access_token"] = token
+            st.session_state["user_email"]   = email
+            # Clean the URL immediately so the token isn't visible in the bar
+            st.query_params.clear()
     return bool(st.session_state.get("access_token"))
 
 def _store_session(session) -> None:
-    """Persist session into session_state after successful sign-in."""
     st.session_state["access_token"] = session.access_token
     st.session_state["user_email"]   = session.user.email
 
 def _clear_session() -> None:
-    """Wipe session_state — the next rerun will show the login screen."""
     for key in ("access_token", "user_email"):
         st.session_state.pop(key, None)
-
-def _persist_to_local_storage(token: str, email: str) -> None:
-    """No-op kept for call-site compatibility — localStorage bridge removed."""
-    pass
+    _clear_local_storage()
 
 
 # ---------------------------------------------------------------------------
@@ -898,10 +936,6 @@ def show_login() -> None:
         </style>
         """, unsafe_allow_html=True)
 
-        # ── Access-request toggle + inline form ────────────────────────────
-        if "show_access_form" not in st.session_state:
-            st.session_state["show_access_form"] = False
-
         with st.container():
             st.markdown('<div class="request-access-btn">', unsafe_allow_html=True)
             if st.button(
@@ -909,57 +943,8 @@ def show_login() -> None:
                 use_container_width=True,
                 help="Submit an access request to your IT administrator",
             ):
-                st.session_state["show_access_form"] = not st.session_state["show_access_form"]
+                st.toast("Access request routed to IT admin", icon="✅")
             st.markdown('</div>', unsafe_allow_html=True)
-
-        if st.session_state["show_access_form"]:
-            st.markdown("<br>", unsafe_allow_html=True)
-            with st.form("access_request_form", clear_on_submit=True):
-                st.markdown(
-                    '<div style="font-size:0.8rem;font-weight:700;color:#7ab3d4;'
-                    'letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.5rem">'
-                    'Enterprise Access Request</div>',
-                    unsafe_allow_html=True,
-                )
-                req_name  = st.text_input("Full Name",   placeholder="Jane Smith")
-                req_email = st.text_input("Work Email",  placeholder="jane@company.com")
-                req_role  = st.selectbox(
-                    "Role",
-                    ["Underwriter", "Actuary", "Compliance Officer", "IT Administrator", "Other"],
-                )
-                col_submit, col_cancel = st.columns([2, 1])
-                with col_submit:
-                    req_submitted = st.form_submit_button("Submit Request", use_container_width=True)
-                with col_cancel:
-                    req_cancelled = st.form_submit_button(
-                        "Cancel",
-                        use_container_width=True,
-                        type="secondary",
-                    )
-
-            if req_cancelled:
-                st.session_state["show_access_form"] = False
-                st.rerun()
-
-            if req_submitted:
-                if not req_name.strip() or not req_email.strip():
-                    st.error("Please fill in your name and work email.")
-                else:
-                    try:
-                        ar = requests.post(
-                            f"{_BACKEND_URL}/api/v1/access-request",
-                            json={"name": req_name.strip(), "work_email": req_email.strip(), "role": req_role},
-                            timeout=15,
-                        )
-                        if ar.status_code == 200:
-                            st.session_state["show_access_form"] = False
-                            st.toast("Access request submitted — IT admin will be in touch", icon="✅")
-                            st.rerun()
-                        else:
-                            detail = ar.json().get("detail", ar.text)
-                            st.error(f"❌ Submission failed: {detail}")
-                    except requests.exceptions.RequestException as e:
-                        st.error(f"❌ Could not reach the backend: {e}")
 
         if submitted:
             if not email or not password:
@@ -1220,74 +1205,39 @@ def show_dashboard() -> None:
     user_email = st.session_state.get("user_email", "")
 
     # ── Hero ────────────────────────────────────────────────────────────────
-    # Two columns: hero HTML fills the wide left col; Sign Out sits in the
-    # narrow right col, styled to look like it's inside the banner.
     st.markdown("""
-    <style>
-        /* Remove gap + padding between the two hero columns */
-        div[data-testid="stHorizontalBlock"]:has(div.hero) {
-            gap: 0 !important;
-            align-items: center !important;
-            background: #0a0f1e;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            padding-right: 2.8rem;
-            margin-bottom: 2rem;
-        }
-        /* Target Sign Out button by its key */
-        div[data-testid="stButton"]:has(button[kind="secondary"]) button,
-        button[data-testid="stBaseButton-secondary"] {
-            background: transparent !important;
-            border: 1px solid rgba(255,255,255,0.12) !important;
-            color: #64748b !important;
-            font-size: 0.75rem !important;
-            font-weight: 500 !important;
-            letter-spacing: 0.04em !important;
-            padding: 0.38rem 1rem !important;
-            border-radius: 8px !important;
-            box-shadow: none !important;
-            width: auto !important;
-            white-space: nowrap !important;
-            transition: border-color 0.15s, color 0.15s !important;
-        }
-        button[data-testid="stBaseButton-secondary"]:hover {
-            border-color: rgba(239,68,68,0.4) !important;
-            color: #fca5a5 !important;
-            background: transparent !important;
-            transform: none !important;
-            filter: none !important;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
-    hero_col, signout_col = st.columns([9, 1])
-    with hero_col:
-        st.markdown("""
-        <div class="hero" style="border-bottom:none;margin-bottom:0">
-            <div class="hero-inner">
-                <div class="hero-left">
-                    <div class="hero-logo">🛡️</div>
-                    <div class="hero-title-group">
-                        <h1>Trace: Enterprise AI Underwriter</h1>
-                        <p>Actuarial claim evaluation &amp; fraud detection · IBM watsonx.ai</p>
-                    </div>
-                </div>
-                <div class="hero-right">
-                    <div class="hero-status-pill">
-                        <div class="hero-status-dot"></div>
-                        System Operational
-                    </div>
+    <div class="hero">
+        <div class="hero-inner">
+            <div class="hero-left">
+                <div class="hero-logo">🛡️</div>
+                <div class="hero-title-group">
+                    <h1>Trace: Enterprise AI Underwriter</h1>
+                    <p>Actuarial claim evaluation &amp; fraud detection · IBM watsonx.ai</p>
                 </div>
             </div>
+            <div class="hero-right">
+                <div class="hero-status-pill">
+                    <div class="hero-status-dot"></div>
+                    System Operational
+                </div>
+                <button class="hero-signout-btn"
+                        onclick="window.location.href='?signout=1'">
+                    Sign Out
+                </button>
+            </div>
         </div>
-        """, unsafe_allow_html=True)
-    with signout_col:
-        if st.button("Sign Out", key="signout_btn", type="secondary"):
-            try:
-                supabase.auth.sign_out()
-            except Exception:
-                pass
-            _clear_session()
-            st.rerun()
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Sign-out via query param — no visible Streamlit button needed
+    if st.query_params.get("signout") == "1":
+        st.query_params.clear()
+        try:
+            supabase.auth.sign_out()
+        except Exception:
+            pass
+        _clear_session()
+        st.rerun()
 
     # ── Two-column form ──────────────────────────────────────────────────────
     form_left, form_right = st.columns(2, gap="large")
@@ -1710,6 +1660,11 @@ def show_dashboard() -> None:
 # ---------------------------------------------------------------------------
 # Entry point — auth gate
 # ---------------------------------------------------------------------------
+# Inject the localStorage restore bridge first — runs before auth check.
+# On a cold refresh, this sets ?_restore_token=... and triggers one extra
+# rerun which _is_authenticated() then catches to restore the session.
+st.markdown(_RESTORE_JS, unsafe_allow_html=True)
+
 if _is_authenticated():
     show_dashboard()
 else:
