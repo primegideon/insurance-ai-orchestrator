@@ -831,10 +831,14 @@ def _persist_to_local_storage(token: str, email: str) -> None:
     )
 
 def _clear_local_storage() -> None:
-    """Inject JS that removes the session from localStorage."""
+    """Clear localStorage then hard-reload so _RESTORE_JS cannot race
+    and restore the token before the browser processes the removeItem."""
     st.markdown(
-        "<script>localStorage.removeItem('iau_access_token');"
-        "localStorage.removeItem('iau_user_email');</script>",
+        "<script>"
+        "localStorage.removeItem('iau_access_token');"
+        "localStorage.removeItem('iau_user_email');"
+        "window.location.replace(window.location.pathname);"
+        "</script>",
         unsafe_allow_html=True,
     )
 
@@ -1282,7 +1286,10 @@ def show_dashboard() -> None:
     </div>
     """, unsafe_allow_html=True)
 
-    # Sign-out via query param — no visible Streamlit button needed
+    # Sign-out via query param — no visible Streamlit button needed.
+    # _clear_session() → _clear_local_storage() injects JS that clears
+    # localStorage AND calls window.location.replace() for a clean hard reload,
+    # so no st.rerun() is needed here (the browser handles the navigation).
     if st.query_params.get("signout") == "1":
         st.query_params.clear()
         try:
@@ -1290,7 +1297,6 @@ def show_dashboard() -> None:
         except Exception:
             pass
         _clear_session()
-        st.rerun()
 
     # ── Two-column form ──────────────────────────────────────────────────────
     form_left, form_right = st.columns(2, gap="large")
