@@ -1220,39 +1220,22 @@ def show_dashboard() -> None:
     user_email = st.session_state.get("user_email", "")
 
     # ── Hero ────────────────────────────────────────────────────────────────
-    # Hero is full HTML. Sign Out is a real st.button rendered in a narrow
-    # column that overlaps the hero's right side via negative margin CSS.
+    # Two columns: hero HTML fills the wide left col; Sign Out sits in the
+    # narrow right col, styled to look like it's inside the banner.
     st.markdown("""
-    <div class="hero">
-        <div class="hero-inner">
-            <div class="hero-left">
-                <div class="hero-logo">🛡️</div>
-                <div class="hero-title-group">
-                    <h1>Trace: Enterprise AI Underwriter</h1>
-                    <p>Actuarial claim evaluation &amp; fraud detection · IBM watsonx.ai</p>
-                </div>
-            </div>
-            <div class="hero-right">
-                <div class="hero-status-pill">
-                    <div class="hero-status-dot"></div>
-                    System Operational
-                </div>
-                <!-- Sign Out placeholder keeps the flex layout correct -->
-                <div style="width:90px"></div>
-            </div>
-        </div>
-    </div>
     <style>
-        /* Pull the signout column up into the hero banner */
-        div.signout-wrap {
-            margin-top: -3.55rem;
-            display: flex;
-            justify-content: flex-end;
+        /* Remove gap + padding between the two hero columns */
+        div[data-testid="stHorizontalBlock"]:has(div.hero) {
+            gap: 0 !important;
+            align-items: center !important;
+            background: #0a0f1e;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
             padding-right: 2.8rem;
-            position: relative;
-            z-index: 20;
+            margin-bottom: 2rem;
         }
-        div.signout-wrap > div.stButton > button {
+        /* Target Sign Out button by its key */
+        div[data-testid="stButton"]:has(button[kind="secondary"]) button,
+        button[data-testid="stBaseButton-secondary"] {
             background: transparent !important;
             border: 1px solid rgba(255,255,255,0.12) !important;
             color: #64748b !important;
@@ -1263,34 +1246,48 @@ def show_dashboard() -> None:
             border-radius: 8px !important;
             box-shadow: none !important;
             width: auto !important;
-            min-width: 0 !important;
+            white-space: nowrap !important;
             transition: border-color 0.15s, color 0.15s !important;
         }
-        div.signout-wrap > div.stButton > button:hover {
+        button[data-testid="stBaseButton-secondary"]:hover {
             border-color: rgba(239,68,68,0.4) !important;
             color: #fca5a5 !important;
             background: transparent !important;
             transform: none !important;
             filter: none !important;
         }
-        @media (max-width: 640px) {
-            div.signout-wrap {
-                padding-right: 1.2rem;
-                margin-top: -3.1rem;
-            }
-        }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="signout-wrap">', unsafe_allow_html=True)
-    if st.button("Sign Out", key="signout_btn"):
-        try:
-            supabase.auth.sign_out()
-        except Exception:
-            pass
-        _clear_session()
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    hero_col, signout_col = st.columns([9, 1])
+    with hero_col:
+        st.markdown("""
+        <div class="hero" style="border-bottom:none;margin-bottom:0">
+            <div class="hero-inner">
+                <div class="hero-left">
+                    <div class="hero-logo">🛡️</div>
+                    <div class="hero-title-group">
+                        <h1>Trace: Enterprise AI Underwriter</h1>
+                        <p>Actuarial claim evaluation &amp; fraud detection · IBM watsonx.ai</p>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <div class="hero-status-pill">
+                        <div class="hero-status-dot"></div>
+                        System Operational
+                    </div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with signout_col:
+        if st.button("Sign Out", key="signout_btn", type="secondary"):
+            try:
+                supabase.auth.sign_out()
+            except Exception:
+                pass
+            _clear_session()
+            st.rerun()
 
     # ── Two-column form ──────────────────────────────────────────────────────
     form_left, form_right = st.columns(2, gap="large")
