@@ -446,33 +446,56 @@ st.markdown("""
     }
 
     /* ════════════════════════════════════════════
-       METRIC CARDS
+       METRIC CARDS  — compact custom row
     ════════════════════════════════════════════ */
-    [data-testid="stMetric"] {
-        background: rgba(255,255,255,0.04) !important;
-        border: 1px solid rgba(255,255,255,0.09) !important;
-        border-radius: 16px !important;
-        padding: 1.15rem 1.25rem !important;
-        backdrop-filter: blur(12px) !important;
-        box-shadow: 0 4px 28px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
-        transition: box-shadow 0.2s, transform 0.2s !important;
+    .kpi-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 1.4rem;
     }
-    [data-testid="stMetric"]:hover {
-        box-shadow: 0 6px 36px rgba(0,174,239,0.20), inset 0 1px 0 rgba(255,255,255,0.06) !important;
-        transform: translateY(-2px) !important;
+    .kpi-card {
+        background: #0d1220;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        transition: box-shadow 0.2s, transform 0.2s;
     }
-    [data-testid="stMetricValue"] {
-        font-size: 2.2rem !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.02em !important;
+    .kpi-card:hover {
+        box-shadow: 0 6px 36px rgba(0,174,239,0.20), inset 0 1px 0 rgba(255,255,255,0.06);
+        transform: translateY(-2px);
     }
-    [data-testid="stMetricLabel"] {
-        font-size: 0.74rem !important;
-        font-weight: 600 !important;
-        letter-spacing: 0.07em !important;
-        text-transform: uppercase !important;
-        color: #6b7280 !important;
+    .kpi-label {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: #4a5470;
     }
+    .kpi-value {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #e2e8f0;
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+    }
+    .kpi-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 4px;
+        width: fit-content;
+    }
+    .kpi-badge-red   { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .kpi-badge-amber { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+    .kpi-badge-green { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+    .kpi-badge-muted { background: rgba(255,255,255,0.05); color: #6b7280; border: 1px solid rgba(255,255,255,0.08); }
 
     /* ════════════════════════════════════════════
        VERDICT CARD  — redesigned
@@ -1547,39 +1570,62 @@ def show_dashboard() -> None:
     """, unsafe_allow_html=True)
 
     # ── Key metrics row ───────────────────────────────────────────────────────
-    m1, m2, m3, m4 = st.columns(4)
+    income_ratio = claim_amount / annual_income if annual_income > 0 else 0
 
     if risk_score < 0.4:
-        score_delta, delta_color = "Low risk", "normal"
+        score_badge = '<span class="kpi-badge kpi-badge-green">↑ Low risk</span>'
     elif risk_score < 0.7:
-        score_delta, delta_color = "Medium risk", "off"
+        score_badge = '<span class="kpi-badge kpi-badge-amber">↑ Medium risk</span>'
     else:
-        score_delta, delta_color = "High risk", "inverse"
+        score_badge = '<span class="kpi-badge kpi-badge-red">↑ High risk</span>'
 
-    with m1:
-        st.metric("🎯 Risk Score", f"{risk_score:.2f}", score_delta, delta_color=delta_color)
-    with m2:
-        st.metric(
-            "🚩 Anomalies",
-            str(len(flagged_anomalies)),
-            "flags detected" if flagged_anomalies else "all clear",
-            delta_color="inverse" if flagged_anomalies else "normal",
-        )
-    with m3:
-        st.metric(
-            "📅 Policy Age",
-            f"{months_since_inception} mo.",
-            "Early claim ⚠️" if months_since_inception < 12 else "Normal tenure",
-            delta_color="inverse" if months_since_inception < 12 else "normal",
-        )
-    with m4:
-        income_ratio = claim_amount / annual_income if annual_income > 0 else 0
-        st.metric(
-            "💰 Claim / Income",
-            f"{income_ratio:.1f}×",
-            "Anti-selection risk" if income_ratio > 5 else "Within range",
-            delta_color="inverse" if income_ratio > 5 else "normal",
-        )
+    anomaly_count = len(flagged_anomalies)
+    anom_badge = (
+        f'<span class="kpi-badge kpi-badge-red">↑ {anomaly_count} flag{"s" if anomaly_count != 1 else ""} detected</span>'
+        if anomaly_count else
+        '<span class="kpi-badge kpi-badge-green">✓ All clear</span>'
+    )
+
+    tenure_badge = (
+        '<span class="kpi-badge kpi-badge-red">↑ Early claim</span>'
+        if months_since_inception < 12 else
+        '<span class="kpi-badge kpi-badge-amber">↑ Watch period</span>'
+        if months_since_inception < 36 else
+        '<span class="kpi-badge kpi-badge-green">✓ Normal tenure</span>'
+    )
+
+    ratio_badge = (
+        '<span class="kpi-badge kpi-badge-red">↑ Anti-selection risk</span>'
+        if income_ratio > 5 else
+        '<span class="kpi-badge kpi-badge-amber">↑ Elevated</span>'
+        if income_ratio > 3 else
+        '<span class="kpi-badge kpi-badge-green">✓ Within range</span>'
+    )
+
+    st.markdown(f"""
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-label">Risk Score</div>
+            <div class="kpi-value">{risk_score:.2f}</div>
+            {score_badge}
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Anomalies</div>
+            <div class="kpi-value">{anomaly_count}</div>
+            {anom_badge}
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Policy Age</div>
+            <div class="kpi-value">{months_since_inception} mo.</div>
+            {tenure_badge}
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Claim / Income</div>
+            <div class="kpi-value">{income_ratio:.1f}×</div>
+            {ratio_badge}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
