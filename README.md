@@ -381,13 +381,12 @@ Bob (IBM's AI coding assistant) was the primary engineer for every feature in th
 
 ---
 
-## 👤 About the Developer
-
+### About the Developer
 The actuarial logic, underwriting rules, and risk variable selection in this project are not hypothetical — they are grounded in real-world domain expertise.
 
-The architectural decisions around fraud detection patterns (Financial Anti-Selection, the High-Risk Triangle, Material Misrepresentation, Early Claims) were informed by direct professional experience gained during a completed internship at **Prudential Life Insurance Ghana**, where these failure modes were encountered in live claims operations. This domain knowledge is paired with ongoing **Actuarial Science studies at the University of Cape Coast**, providing the quantitative and regulatory framework that underpins the risk scoring model.
+The architectural decisions around fraud detection patterns (Financial Anti-Selection, the High-Risk Triangle, Material Misrepresentation, Early Claims) were informed by direct professional experience within the claims operations department of a leading multinational life insurance provider. This practical domain knowledge is paired with formal academic training in Actuarial Science, providing the quantitative and regulatory framework that underpins the Trace risk scoring model.
 
-The result is an AI system designed not just by an engineer, but by someone who has sat on the underwriting side and understands what patterns actually matter — and why.
+The result is an AI system designed not just by an engineer, but by an industry insider who has sat on the underwriting side and understands what patterns actually matter — and why.
 
 ---
 
