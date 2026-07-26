@@ -2,7 +2,7 @@
 ### Enterprise-Grade AI Risk Underwriting Orchestrator
 #### IBM AI Builders Hackathon — Submission
 
-> **Bridging advanced data engineering with practical actuarial science — real-time life insurance claim risk evaluation powered by IBM watsonx.ai (Mistral Large + IBM Slate Embeddings), orchestrated through a secure FastAPI backend with zero-latency local JWT auth, Supabase PostgreSQL + pgvector persistence, RAG confidence guardrails, PDF audit export, and a fully custom enterprise Streamlit dashboard.**
+> **Bridging advanced data engineering with practical actuarial science — real-time life insurance claim risk evaluation powered by IBM watsonx.ai (IBM Granite 4 + IBM Slate Embeddings), orchestrated through a secure FastAPI backend with zero-latency local JWT auth, Supabase PostgreSQL + pgvector persistence, RAG confidence guardrails, PDF audit export, and a fully custom enterprise Streamlit dashboard.**
 
 ---
 
@@ -40,7 +40,7 @@ The industry needs a system that applies these rules *holistically*, *every time
 2. They submit a claim and policyholder profile using **dropdowns, multiselects, and sliders** — all ICD-10 coded, with a live claim/income ratio indicator.
 3. The **FastAPI backend** validates the ES256 JWT locally (zero network I/O), constructs a structured actuarial prompt, and dynamically retrieves relevant internal policy clauses from **Supabase pgvector** using IBM Slate embeddings.
 4. A **RAG confidence guardrail** assesses the retrieved context before the LLM call. If the vector store returns insufficient policy-specific content, `requires_manual_audit = True` is set and a high-visibility audit banner is shown in the UI.
-5. The **IBM watsonx.ai** Mistral Large model evaluates the claim holistically against domain-specific underwriting rules *and* the retrieved policy citations, returning a strict JSON verdict.
+5. The **IBM watsonx.ai** Granite 4 model evaluates the claim holistically against domain-specific underwriting rules *and* the retrieved policy citations, returning a strict JSON verdict.
 6. The verdict is **persisted to Supabase PostgreSQL**, rendered on the dashboard with a redesigned professional verdict card (SVG risk ring, coloured accent bar, status chip), a **Visual Traceability** panel, anomaly pills, and a full AI reasoning panel.
 7. The underwriter can download a **PDF Audit Summary** — generated in-memory with ReportLab — containing all claim data, retrieved clauses, and the AI decision, formatted for file archiving.
 
@@ -58,7 +58,21 @@ The industry needs a system that applies these rules *holistically*, *every time
 
 | Swagger UI |
 |---|
-| ![Swagger UI — API docs](images/swagger_ui.png) |
+| ![Swagger UI — API docs](images/Granite_swagger_ui.jpeg) |
+
+---
+
+## 🔑 Judge / Demo Access
+
+A shared demo account is pre-provisioned — no sign-up or invite needed.
+
+| Field | Value |
+|---|---|
+| **Live App** | [https://trace-underwriter.streamlit.app/](https://trace-underwriter.streamlit.app/) |
+| **Email** | `judge@trace-demo.com` |
+| **Password** | `TraceDemo2025` |
+
+> These credentials give full access to the Underwriter Portal. Sign in, submit a claim, and explore the AI verdict, Visual Traceability panel, and PDF Audit Export.
 
 ---
 
@@ -103,7 +117,7 @@ flowchart TD
 
     subgraph AI["🤖 IBM watsonx.ai"]
         EMBED["ibm/slate-30m-english-rtrvr-v2\n384-dim embeddings for RAG"]
-        LLM["mistral-large-2512\nGenerative AI — risk evaluation"]
+        LLM["ibm/granite-4-h-small\nGenerative AI — risk evaluation"]
     end
 
     UI -->|"Sign in → Supabase Auth"| SAUTH
@@ -258,7 +272,7 @@ The `st.download_button` receives the bytes directly — the file is named `audi
 | AI orchestration | LangChain + langchain-ibm | latest |
 | IBM AI SDK | ibm-watsonx-ai | latest |
 | Embeddings | `ibm/slate-30m-english-rtrvr-v2` | 384-dim |
-| LLM | Mistral Large (via watsonx.ai) | `mistral-large-2512` |
+| LLM | IBM Granite 4 (via watsonx.ai) | `ibm/granite-4-h-small` |
 | Database | Supabase PostgreSQL + pgvector | — |
 | Vector store | LangChain `SupabaseVectorStore` | — |
 | PDF generation | ReportLab Platypus | ≥ 4.0.0 |

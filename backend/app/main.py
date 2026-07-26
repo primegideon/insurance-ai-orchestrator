@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 # ---------------------------------------------------------------------------
 app = FastAPI(
     title="Trace: Enterprise AI Underwriter",
-    description="Life insurance risk evaluation powered by IBM watsonx.ai (Mistral Large).",
+    description="Life insurance risk evaluation powered by IBM watsonx.ai (IBM Granite 4).",
     version="1.0.0",
     lifespan=lifespan,
 )

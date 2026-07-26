@@ -117,7 +117,7 @@ def _assess_rag_confidence(policy_clauses: str) -> tuple[bool, str | None]:
 
 class InsuranceRiskEvaluator:
     """Evaluates life-insurance claims against policyholder profiles using
-    Mistral via ibm-watsonx-ai and returns a structured RiskEvaluationReport.
+    IBM Granite 4 via ibm-watsonx-ai and returns a structured RiskEvaluationReport.
 
     Required environment variables:
         WATSONX_API_KEY    – IBM Cloud API key
@@ -127,7 +127,7 @@ class InsuranceRiskEvaluator:
     """
 
     #: Model used for risk evaluation
-    MODEL_ID: str = "mistral-large-2512"
+    MODEL_ID: str = "ibm/granite-4-h-small"
 
     def __init__(
         self,

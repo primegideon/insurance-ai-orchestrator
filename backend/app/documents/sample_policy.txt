@@ -1,7 +1,235 @@
-Underwriting Policy Manual - Section 4: Cardiac, Respiratory, and Anti-Selection Claims
+Underwriting Policy Manual — Life Insurance Division
+Internal Reference: UPM-2024 Rev 4.1
+Classification: Internal Use Only
 
-Rule 42A - Early Cardiac Claims: Any claim submitted within the first 12 months of policy inception containing diagnosis codes related to acute myocardial infarction (I21.9) must be automatically escalated to a Senior Underwriter, regardless of the claim amount or the policyholder's income ratio. 
+===========================================================================
+SECTION 1 — FINANCIAL ANTI-SELECTION RULES
+===========================================================================
 
-Rule 42B - Asthma Disclosures: If a claim contains a diagnosis code for asthma (J45), verify the medical history. If asthma was not explicitly declared during onboarding, the claim must be rejected due to material misrepresentation.
+Rule 10A — Claim-to-Income Ratio Threshold:
+Any claim where the claimed benefit amount exceeds five times (5×) the
+policyholder's declared annual income must be flagged for Financial
+Anti-Selection. The underwriter must escalate the claim to a Senior
+Underwriter for secondary review. A claim-to-income ratio above 5× is a
+primary actuarial indicator that the policy was obtained with intent to
+over-insure, which constitutes anti-selection fraud.
 
-Rule 88C - The High-Risk Triangle: If a claim exceeds $100,000, the policyholder's age is over 65, and the policy was initiated less than 36 months ago, the claim must be flagged for "Anti-Selection Risk" and requires a mandatory secondary manual review by the fraud department. The simultaneous co-occurrence of advanced age, low policy tenure, and a high claim amount is the strongest composite fraud indicator in life insurance underwriting.
+Rule 10B — Extreme Claim-to-Income Ratio:
+Where the claim-to-income ratio exceeds ten times (10×) the policyholder's
+declared annual income, the recommendation shall be automatic Rejection
+pending a formal fraud investigation. The fraud investigation team must be
+notified within 48 hours of flagging. All supporting financial documents
+must be requested from the claimant before any benefit disbursement.
+
+Rule 10C — Income Verification Requirement:
+For any claim exceeding $250,000, the underwriting team must independently
+verify the policyholder's declared annual income against tax records or
+employer confirmation letters submitted at policy inception. Discrepancies
+of more than 20% between declared and verified income must be treated as
+material misrepresentation and escalated accordingly.
+
+===========================================================================
+SECTION 2 — EARLY CLAIM RULES
+===========================================================================
+
+Rule 20A — Early Claim Escalation (0–12 months):
+Any claim submitted where the months since policy inception is fewer than
+twelve (12) months shall be automatically escalated to a Senior Underwriter,
+regardless of claim amount, diagnosis code, or policyholder age. The early
+inception period is the highest-risk window for fraudulent policy acquisition.
+This rule applies without exception.
+
+Rule 20B — Early Claim Enhanced Due Diligence (12–24 months):
+Claims filed between twelve (12) and twenty-four (24) months of policy
+inception require enhanced due diligence. The underwriter must verify that
+all declared medical history flags at onboarding are consistent with the
+current diagnosis. Any inconsistency triggers a material misrepresentation
+investigation under Section 3.
+
+Rule 20C — Suicide and Self-Harm Exclusion Clause:
+Claims filed within the first twenty-four (24) months of policy inception
+where the cause of claim involves self-harm or suicide are excluded from
+benefit payment under the standard suicide clause. A formal exclusion notice
+must be issued to the claimant within ten (10) business days.
+
+Rule 20D — Policy Lapse and Reinstatement:
+If a policy was lapsed and subsequently reinstated within the twelve (12)
+months prior to claim submission, the inception date for all early-claim
+rules shall be reset to the reinstatement date, not the original inception
+date. Underwriters must verify reinstatement history before processing any
+claim to ensure the correct inception reference is used.
+
+===========================================================================
+SECTION 3 — MATERIAL MISREPRESENTATION RULES
+===========================================================================
+
+Rule 30A — Definition of Material Misrepresentation:
+Material misrepresentation occurs when a policyholder knowingly or
+negligently omits or misstates a material fact during the application
+process, including medical history, pre-existing conditions, lifestyle
+risk factors, or financial information, and where such omission or
+misstatement would have affected the underwriter's decision to issue
+the policy or the premium rate applied.
+
+Rule 30B — Undisclosed Pre-Existing Conditions:
+Where a claim diagnosis code corresponds to a condition (e.g. cardiac
+disease, diabetes, chronic respiratory illness, cancer) that was not
+declared as a medical history flag at policy application, the claim
+must be suspended and referred to the Medical Investigation Unit. The
+underwriter shall recommend Rejection if the investigation confirms the
+condition was present or clinically diagnosable at the time of application.
+
+Rule 30C — Cardiac Diagnosis Misrepresentation:
+Any claim containing a diagnosis code for acute myocardial infarction
+(I21.9), heart failure (I50.9), or ischemic heart disease (I25.9) where
+the policyholder's medical history flags at onboarding contain no mention
+of cardiac or cardiovascular conditions must be treated as a potential
+material misrepresentation and escalated immediately.
+
+Rule 30D — Cancer and Malignancy Disclosure:
+Claims involving malignant neoplasm codes (C00–C97) where no prior cancer
+history or oncology treatment was declared at inception are subject to an
+automatic 90-day investigation hold. Benefit payment is suspended until
+the Medical Investigation Unit completes its review.
+
+Rule 30E — Diabetes and Metabolic Conditions:
+Where a claim involves diabetes-related complications (E10–E14) and the
+policyholder declared no metabolic or endocrine conditions at onboarding,
+the claim requires enhanced scrutiny. The underwriter must request the
+policyholder's general practitioner records for the three-year period
+prior to policy inception.
+
+Rule 30F — Contesting a Policy for Misrepresentation:
+Under Section 45 of the Insurance Act, a life insurance policy may be
+contested within two (2) years of inception on the grounds of material
+misrepresentation. After two years, the policy becomes incontestable
+except in cases of outright fraud. Underwriters must note the inception
+date when applying this rule.
+
+===========================================================================
+SECTION 4 — HIGH-RISK TRIANGLE RULES
+===========================================================================
+
+Rule 40A — The High-Risk Triangle Definition:
+The High-Risk Triangle is the simultaneous co-occurrence of three actuarial
+risk factors: (1) policyholder age greater than sixty-five (65) years,
+(2) policy tenure less than thirty-six (36) months since inception, and
+(3) a claim benefit amount exceeding one hundred thousand dollars ($100,000).
+When all three conditions are present simultaneously, the claim must be
+flagged for Anti-Selection Risk and referred to the Fraud Investigation
+Department for mandatory secondary manual review.
+
+Rule 40B — High-Risk Triangle — Escalation Procedure:
+Upon identification of a High-Risk Triangle claim, the handling underwriter
+must: (a) suspend benefit disbursement immediately, (b) notify the Fraud
+Investigation Department within 24 hours, (c) request the policyholder's
+complete medical records from the past five years, and (d) obtain independent
+actuarial verification of the declared annual income.
+
+Rule 40C — High-Risk Triangle — Partial Conditions:
+Where only two of the three High-Risk Triangle conditions are present, the
+claim shall be escalated to a Senior Underwriter rather than the Fraud
+Department. The Senior Underwriter has discretion to approve, escalate
+further, or reject based on the totality of the claim evidence.
+
+Rule 40D — Age-Based Risk Loading:
+For all policyholders aged sixty-five (65) or above, claims must be reviewed
+with heightened actuarial scrutiny. Late-age policy acquisition combined with
+any one additional risk factor (early claim, high claim amount, undisclosed
+condition) is sufficient grounds for escalation. Actuarial tables show that
+the probability of a fraudulent late-age policy acquisition is 4.7× higher
+than the base population average.
+
+===========================================================================
+SECTION 5 — FRAUD DETECTION AND INVESTIGATION PROCEDURES
+===========================================================================
+
+Rule 50A — Composite Fraud Indicator:
+When a claim triggers two or more independent fraud indicators simultaneously
+(e.g. Early Claim + High Claim-to-Income Ratio, or High-Risk Triangle +
+Undisclosed Condition), the compounding effect materially increases fraud
+probability. Such compound-flagged claims must receive an automatic
+Rejection recommendation pending a full fraud investigation, overriding
+any single-factor approval logic.
+
+Rule 50B — Referral to Fraud Investigation Unit:
+All claims flagged under Rules 10B, 20A, 40A, 40B, or 50A must be formally
+referred to the Fraud Investigation Unit (FIU) with a complete case file
+including: original application form, claim submission form, all supporting
+medical documentation, policy schedule, and the underwriter's written
+assessment of the specific fraud indicators identified.
+
+Rule 50C — Benefit Suspension During Investigation:
+No benefit disbursement shall occur while a claim is under active fraud
+investigation. Claimants must be notified in writing within five (5)
+business days of investigation commencement. The FIU has a maximum of
+ninety (90) days to complete its investigation, after which a definitive
+determination must be issued.
+
+Rule 50D — Suspicious Activity Reporting:
+Where the FIU concludes that a claim involves deliberate fraud, the case
+must be reported to the Financial Intelligence Centre in accordance with
+applicable anti-money laundering and insurance fraud statutes. Policy
+cancellation with forfeiture of all premiums paid is the mandatory outcome
+for confirmed fraud cases.
+
+===========================================================================
+SECTION 6 — STANDARD APPROVAL CRITERIA
+===========================================================================
+
+Rule 60A — Low-Risk Claim Approval:
+A claim may be approved without escalation where all of the following
+conditions are met: (a) the claim-to-income ratio does not exceed 3×,
+(b) the months since policy inception exceeds 36 months, (c) the diagnosis
+codes are consistent with declared medical history flags at onboarding,
+(d) the policyholder's age does not exceed 65 years, and (e) no prior
+claims have been submitted under this policy within the past 24 months.
+
+Rule 60B — Benefit Payment Timeline:
+Approved claims must be settled within thirty (30) calendar days of the
+approval decision. The Claims Processing Unit is responsible for initiating
+bank transfer or cheque issuance within five (5) business days of the
+underwriter's written approval.
+
+Rule 60C — Partial Benefit Approval:
+In cases where a claim is partially valid but contains elements subject to
+exclusion or investigation, the underwriter may approve the undisputed
+portion of the benefit and escalate the disputed portion separately. The
+claimant must be informed in writing of any partial approval and the grounds
+for the disputed portion's suspension.
+
+===========================================================================
+SECTION 7 — DIAGNOSIS CODE REFERENCE FOR UNDERWRITERS
+===========================================================================
+
+The following ICD-10 diagnosis codes represent high-scrutiny categories
+requiring heightened underwriter attention under Sections 3, 4, and 5:
+
+Cardiac Conditions (Rule 30C applies):
+  I21.9 — Acute myocardial infarction, unspecified
+  I50.9 — Heart failure, unspecified
+  I25.9 — Chronic ischemic heart disease, unspecified
+  I10   — Essential primary hypertension (requires history verification)
+
+Respiratory Conditions:
+  J45   — Asthma (Rule 42B: if not declared at onboarding, reject for misrepresentation)
+  J44.1 — COPD with acute exacerbation
+  J18.9 — Pneumonia, unspecified organism
+
+Metabolic Conditions (Rule 30E applies):
+  E11.9 — Type 2 diabetes mellitus without complications
+  E10.9 — Type 1 diabetes mellitus without complications
+  E66.9 — Obesity, unspecified
+
+Malignant Conditions (Rule 30D applies):
+  C34.9 — Malignant neoplasm of bronchus and lung, unspecified
+  C50.9 — Malignant neoplasm of breast, unspecified
+  C61   — Malignant neoplasm of prostate
+
+Neurological Conditions:
+  G35   — Multiple sclerosis
+  I63.9 — Cerebral infarction, unspecified (stroke)
+  G20   — Parkinson's disease
+
+For all codes in the above categories: if the condition was not declared
+as a medical history flag at policy application, apply Rule 30B immediately.
