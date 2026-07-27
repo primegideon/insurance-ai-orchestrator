@@ -988,6 +988,8 @@ def show_login() -> None:
         # ── Access-request toggle + inline form ────────────────────────────
         if "show_access_form" not in st.session_state:
             st.session_state["show_access_form"] = False
+        if "access_request_success" not in st.session_state:
+            st.session_state["access_request_success"] = False
 
         with st.container():
             st.markdown('<div class="request-access-btn">', unsafe_allow_html=True)
@@ -1001,7 +1003,7 @@ def show_login() -> None:
 
         if st.session_state["show_access_form"]:
             st.markdown("<br>", unsafe_allow_html=True)
-            with st.form("access_request_form", clear_on_submit=True):
+            with st.form("access_request_form"):
                 st.markdown(
                     '<div style="font-size:0.8rem;font-weight:700;color:#7ab3d4;'
                     'letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.5rem">'
@@ -1040,13 +1042,17 @@ def show_login() -> None:
                         )
                         if ar.status_code == 200:
                             st.session_state["show_access_form"] = False
-                            st.toast("Access request submitted — IT admin will be in touch", icon="✅")
+                            st.session_state["access_request_success"] = True
                             st.rerun()
                         else:
                             detail = ar.json().get("detail", ar.text)
                             st.error(f"❌ Submission failed: {detail}")
                     except requests.exceptions.RequestException as e:
                         st.error(f"❌ Could not reach the backend: {e}")
+
+        if st.session_state.get("access_request_success"):
+            st.success("✅ Access request submitted — your IT admin will be in touch.")
+            st.session_state["access_request_success"] = False
 
         if submitted:
             if not email or not password:

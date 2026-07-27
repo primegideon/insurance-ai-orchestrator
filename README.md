@@ -76,7 +76,9 @@ A shared demo account is pre-provisioned — no sign-up or invite needed.
 
 ---
 
-## 📊 API Response Schema
+## 📊 API Reference
+
+### `POST /api/v1/evaluate-claim` — Risk Evaluation (authenticated)
 
 `RiskEvaluationReport` — the full response contract:
 
@@ -89,6 +91,28 @@ A shared demo account is pre-provisioned — no sign-up or invite needed.
 | `policy_clauses` | `str \| null` | Raw RAG-retrieved policy text passed to the frontend for traceability |
 | `requires_manual_audit` | `bool` | `True` when the RAG context was too weak to trust the automated verdict |
 | `audit_reason` | `str \| null` | Human-readable explanation of why the guardrail fired |
+
+### `POST /api/v1/access-request` — Enterprise Access Request (unauthenticated)
+
+Called from the login screen when a new user clicks **"Request Enterprise Access"**. No Bearer token required.
+
+**Request body (`AccessRequest`):**
+
+| Field | Type | Description |
+|---|---|---|
+| `name` | `str` | Applicant's full name (must not be blank) |
+| `work_email` | `str` | Work email address (must not be blank) |
+| `role` | `str` | Job role — e.g. `Underwriter`, `Actuary`, `Compliance Officer` |
+
+**Response:** `{"status": "submitted"}` · Writes a row to the `access_requests` Supabase table for administrator review.
+
+### `POST /api/v1/ingest-documents` — RAG Ingestion (authenticated)
+
+Loads all `.txt` / `.pdf` files from `backend/app/documents/`, chunks them with `RecursiveCharacterTextSplitter`, embeds with IBM Slate, and upserts into Supabase pgvector.
+
+### `GET /` — Health Check (unauthenticated)
+
+Returns `{"status": "ok", "service": "trace-api"}`.
 
 ---
 
@@ -181,6 +205,7 @@ Streamlit's `st.session_state` is in-memory only — it resets on browser refres
 |---|---|
 | `evaluations` | Relational audit log — every evaluation persisted for auditor review (fire-and-forget, never blocks the API response) |
 | `insurance_policies` | pgvector embeddings store — internal policy documents chunked and indexed for semantic retrieval |
+| `access_requests` | Enterprise access request queue — rows written by `POST /api/v1/access-request`; reviewed by IT admin in the Supabase Dashboard |
 
 ---
 
@@ -200,7 +225,7 @@ Streamlit's `st.session_state` is in-memory only — it resets on browser refres
 |---|---|
 | Financial Anti-Selection | `claim_amount > 5 × annual_income` |
 | Early Claim | `months_since_inception < 12` |
-| Material Misrepresentation | Major diagnosis code present, no matching `medical_history_flags` at application |
+| Material Misrepresentation | Major diagnosis code present **within the first 24 months**, no matching `medical_history_flags` at application |
 | **The High-Risk Triangle** | `age > 65` AND `months_since_inception < 36` AND large claim — simultaneous co-occurrence |
 
 **RAG Confidence Guardrail** — `_assess_rag_confidence()` runs **before** the LLM call:
@@ -220,8 +245,8 @@ The frontend was substantially redesigned across multiple iterations:
 
 **Form inputs upgraded:**
 - Age and Policy Tenure → `st.select_slider` (drag bar, 0–360 months / 18–110 years)
-- Diagnosis Codes → `st.multiselect` of 10 common ICD-10 codes + freetext overflow field
-- Medical History → `st.multiselect` of 12 common flags + freetext overflow field
+- Diagnosis Codes → `st.multiselect` of 20 ICD-10 codes (cardiac, respiratory, metabolic, malignant, neurological) + freetext overflow field
+- Medical History → `st.multiselect` of 22 common flags + freetext overflow field
 - Live **Claim/Income ratio** indicator updates in real-time as values change
 
 **Hero banner redesigned:**
@@ -258,6 +283,18 @@ A fully structured PDF audit report is generated **in-memory** (no disk writes) 
 | Footer | Model attribution, timestamp, internal use disclaimer |
 
 The `st.download_button` receives the bytes directly — the file is named `audit_<claim_id>.pdf` and downloads instantly.
+
+---
+
+### Phase 6 — Enterprise Access Request Flow
+
+A self-service access request mechanism was added to the login screen for users who do not yet have credentials.
+
+**Database** — A new `access_requests` Supabase table was provisioned (migration: `backend/supabase_migrations/access_requests.sql`) with columns `id`, `name`, `work_email`, `role`, `requested_at`, and `status`. Row-Level Security is enabled; only the service-role key may insert or read rows.
+
+**Backend** — A new unauthenticated `POST /api/v1/access-request` endpoint was added to `backend/app/main.py`, backed by the `AccessRequest` Pydantic model in `backend/app/models.py`. Field-level validation rejects blank values. On success the endpoint writes the row to Supabase and returns `{"status": "submitted"}`.
+
+**Frontend** — Clicking "Request Enterprise Access" on the login card now expands an inline form with Full Name, Work Email, and a Role selectbox (`Underwriter`, `Actuary`, `Compliance Officer`, `IT Administrator`, `Other`). The form POSTs to `_BACKEND_URL/api/v1/access-request`, shows a success toast on submission, and collapses. Form visibility is toggled via `st.session_state["show_access_form"]`.
 
 ---
 
@@ -334,7 +371,7 @@ backend\.venv\Scripts\streamlit.exe run frontend\app.py
 # → http://localhost:8501
 ```
 
-> ⚠️ **Important:** The FastAPI CORS configuration permits `http://localhost:8501` (Streamlit's default port). If you run Streamlit on a different port, update `allow_origins` in `backend/app/main.py` accordingly.
+> ⚠️ **Important:** The FastAPI CORS configuration (`backend/app/main.py`) allows the following origins by default: `http://localhost:8501` (Streamlit), `http://localhost:3000` (React/Next.js), `http://localhost:5173` (Vite), and `http://localhost:8080` (Vue/generic). Add your origin to `allow_origins` if you run the frontend on a different port.
 
 ### (Optional) Ingest Policy Documents
 
@@ -358,10 +395,12 @@ insurance-ai-orchestrator/
 │   │   ├── ai_engine.py     # InsuranceRiskEvaluator, RAG guardrail, LLM chain
 │   │   ├── auth.py          # Local ES256 JWT verification (zero-I/O per request)
 │   │   ├── db.py            # Supabase client initialisation
-│   │   ├── main.py          # FastAPI app, CORS (port 8501), routes, lifespan
-│   │   ├── models.py        # Pydantic schemas incl. requires_manual_audit
+│   │   ├── main.py          # FastAPI app, CORS (4 origins), routes, lifespan
+│   │   ├── models.py        # Pydantic schemas incl. AccessRequest, requires_manual_audit
 │   │   ├── rag.py           # pgvector ingest + retrieval pipeline
 │   │   └── documents/       # Drop policy PDFs/TXTs here for ingestion
+│   ├── supabase_migrations/
+│   │   └── access_requests.sql  # CREATE TABLE + RLS for access_requests
 │   ├── .env                 # Secrets (git-ignored)
 │   ├── .env.example         # Reference template
 │   ├── requirements.txt
@@ -390,6 +429,8 @@ Bob (IBM's AI coding assistant) was the primary engineer for every feature in th
 **Interactive form upgrade** — Replaced plain text inputs with `st.select_slider` for Age and Policy Tenure, `st.multiselect` for ICD-10 diagnosis codes and medical history flags, and a live claim/income ratio indicator.
 
 **PDF audit export** — Architected and built the `_build_audit_pdf()` function using ReportLab Platypus with a full document structure (4 sections, alternating-row tables, colour-coded verdict, numbered clause blocks, audit warning box), all rendered into `io.BytesIO` with no disk I/O.
+
+**Enterprise access request flow** — Designed and implemented the full three-layer feature: `access_requests` Supabase table + RLS migration, `AccessRequest` Pydantic model with blank-field validation, unauthenticated `POST /api/v1/access-request` FastAPI endpoint, and the inline toggle form in `frontend/app.py` with role selectbox, success toast, and cancel behaviour.
 
 **Bug diagnosis & fixes** — Identified and fixed the CORS misconfiguration (missing `http://localhost:8501`) causing 90-second timeouts, and the `st.session_state` volatility causing session loss on page refresh.
 
