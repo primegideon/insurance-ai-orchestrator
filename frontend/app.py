@@ -67,12 +67,28 @@ if supabase is None:
 # Common ICD-10 codes and medical flags for multiselect dropdowns
 # ---------------------------------------------------------------------------
 ICD10_OPTIONS = [
+    # Cardiac
     "I21.9 — Acute Myocardial Infarction",
+    "I50.9 — Heart Failure, Unspecified",
+    "I25.9 — Chronic Ischemic Heart Disease",
     "I10   — Essential Hypertension",
-    "E11   — Type 2 Diabetes",
-    "C34   — Lung Cancer",
+    # Respiratory
     "J45   — Asthma",
-    "I63   — Cerebral Infarction (Stroke)",
+    "J44.1 — COPD with Acute Exacerbation",
+    "J18.9 — Pneumonia, Unspecified Organism",
+    # Metabolic
+    "E11.9 — Type 2 Diabetes Mellitus",
+    "E10.9 — Type 1 Diabetes Mellitus",
+    "E66.9 — Obesity, Unspecified",
+    # Malignant
+    "C34.9 — Malignant Neoplasm of Lung, Unspecified",
+    "C50.9 — Malignant Neoplasm of Breast, Unspecified",
+    "C61   — Malignant Neoplasm of Prostate",
+    # Neurological
+    "G35   — Multiple Sclerosis",
+    "I63.9 — Cerebral Infarction, Unspecified (Stroke)",
+    "G20   — Parkinson's Disease",
+    # Other
     "K70   — Alcoholic Liver Disease",
     "F20   — Schizophrenia",
     "G30   — Alzheimer's Disease",
@@ -81,15 +97,25 @@ ICD10_OPTIONS = [
 
 MEDICAL_FLAG_OPTIONS = [
     "Hypertension",
-    "Type 2 Diabetes",
-    "Smoker",
-    "Obesity (BMI > 30)",
     "Heart Disease",
+    "Heart Failure",
+    "Ischemic Heart Disease",
+    "Type 1 Diabetes",
+    "Type 2 Diabetes",
+    "Obesity (BMI > 30)",
+    "Asthma",
+    "COPD",
     "Stroke History",
     "Cancer (any)",
+    "Lung Cancer",
+    "Breast Cancer",
+    "Prostate Cancer",
+    "Multiple Sclerosis",
+    "Parkinson's Disease",
+    "Alzheimer's Disease",
     "Chronic Kidney Disease",
-    "Asthma / COPD",
     "Mental Health Disorder",
+    "Smoker",
     "HIV / AIDS",
     "Liver Cirrhosis",
 ]
